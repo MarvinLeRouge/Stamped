@@ -24,10 +24,14 @@ class EventBus:
                 q.put_nowait(payload)
 
     async def stream(self, q: asyncio.Queue[dict[str, Any]]) -> AsyncGenerator[str, None]:
+        yield f"event: connected\ndata: {json.dumps({})}\n\n"
         try:
             while True:
-                payload = await q.get()
-                yield f"event: {payload['event']}\ndata: {json.dumps(payload['data'])}\n\n"
+                try:
+                    payload = await asyncio.wait_for(q.get(), timeout=30)
+                    yield f"event: {payload['event']}\ndata: {json.dumps(payload['data'])}\n\n"
+                except TimeoutError:
+                    yield ": ping\n\n"
         finally:
             self.unsubscribe(q)
 
