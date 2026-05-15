@@ -4,7 +4,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from stamped.api.status import router as status_router
@@ -42,3 +42,10 @@ async def sse_events() -> StreamingResponse:
 
 if _FRONTEND_DIST.exists():
     app.mount("/", StaticFiles(directory=_FRONTEND_DIST, html=True), name="frontend")
+else:
+
+    @app.get("/")
+    async def _dev_notice() -> HTMLResponse:
+        return HTMLResponse(
+            "<h1>Stamped</h1><p>Frontend not built. Run: <code>stamped start</code></p>"
+        )
