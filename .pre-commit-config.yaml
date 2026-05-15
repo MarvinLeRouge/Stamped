@@ -1,0 +1,45 @@
+repos:
+  # ── Python backend ─────────────────────────────────────────────────────────
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.13
+    hooks:
+      - id: ruff
+        args: [--fix]
+        files: ^backend/
+      - id: ruff-format
+        files: ^backend/
+
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy (backend)
+        entry: bash -c "cd backend && ../.venv/bin/mypy ."
+        args: ["--config-file", "pyproject.toml"]
+        language: system
+        pass_filenames: false
+        files: ^backend/
+
+  # ── Node / Vue frontend ────────────────────────────────────────────────────
+  - repo: local
+    hooks:
+      - id: prettier-frontend
+        name: prettier (frontend)
+        entry: frontend/node_modules/.bin/prettier --write
+        language: system
+        pass_filenames: true
+        files: ^frontend/.*\.(ts|tsx|vue|js|jsx|css|json)$
+
+      - id: eslint-frontend
+        name: eslint (frontend)
+        entry: bash -c "cd frontend && npm run lint:eslint"
+        language: system
+        pass_filenames: false
+        files: ^frontend/.*\.(ts|tsx|vue|js|jsx)$
+
+      - id: vue-tsc-frontend
+        name: vue-tsc (frontend)
+        entry: bash -c "cd frontend && npm run type-check"
+        language: system
+        pass_filenames: false
+        files: ^frontend/.*\.(ts|tsx|vue)$
+        stages: [pre-push]
