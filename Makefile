@@ -21,7 +21,7 @@ dev:
 test: test-backend test-frontend
 
 test-backend:
-	$(VENV)/bin/pytest backend/tests/ --cov=backend/stamped --cov-report=xml -q
+	$(VENV)/bin/pytest backend/tests/ -v --tb=short --cov=backend/stamped --cov-report=xml --cov-report=term-missing
 
 test-frontend:
 	cd frontend && npm run test:unit -- --coverage --run

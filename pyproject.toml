@@ -46,7 +46,6 @@ where = ["backend"]
 [tool.pytest.ini_options]
 testpaths = ["backend/tests"]
 asyncio_mode = "auto"
-addopts = "-q"
 
 [tool.mypy]
 python_version = "3.12"
