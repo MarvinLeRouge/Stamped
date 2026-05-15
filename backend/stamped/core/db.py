@@ -1,5 +1,6 @@
 import sqlite3
 from collections.abc import Generator
+from contextlib import contextmanager
 from pathlib import Path
 
 from stamped.core.config import settings
@@ -12,7 +13,7 @@ def _get_db_path() -> Path:
     return settings.data_dir / "stamped.db"
 
 
-def get_connection() -> sqlite3.Connection:
+def _open() -> sqlite3.Connection:
     conn = sqlite3.connect(_get_db_path(), check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
@@ -20,12 +21,18 @@ def get_connection() -> sqlite3.Connection:
     return conn
 
 
-def get_db() -> Generator[sqlite3.Connection, None, None]:
-    conn = get_connection()
+@contextmanager
+def get_connection() -> Generator[sqlite3.Connection, None, None]:
+    conn = _open()
     try:
         yield conn
     finally:
         conn.close()
+
+
+def get_db() -> Generator[sqlite3.Connection, None, None]:
+    with get_connection() as conn:
+        yield conn
 
 
 def _applied_versions(conn: sqlite3.Connection) -> set[str]:
@@ -38,8 +45,7 @@ def _applied_versions(conn: sqlite3.Connection) -> set[str]:
 
 
 def init_db() -> None:
-    conn = get_connection()
-    try:
+    with get_connection() as conn:
         applied = _applied_versions(conn)
         scripts = sorted(_MIGRATIONS_DIR.glob("*.sql"))
         for script in scripts:
@@ -48,5 +54,3 @@ def init_db() -> None:
                 conn.executescript(script.read_text())
                 conn.execute("INSERT INTO schema_migrations (version) VALUES (?)", (version,))
                 conn.commit()
-    finally:
-        conn.close()
