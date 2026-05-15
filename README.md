@@ -49,7 +49,7 @@ stamped index ~/Photos/2024/rando-belledonne
 |---|---|---|
 | 0 | Repository & project setup | ✅ |
 | 1A | Core — database & config | ✅ |
-| 1B | Core — FastAPI server skeleton | ⏳ |
+| 1B | Core — FastAPI server skeleton | ✅ |
 | 1C | Core — frontend skeleton | ⏳ |
 | 2 | Import pipeline (EXIF, GPX, quests, elevation) | ⏳ |
 | 3 | Thumbnail generation | ⏳ |
