@@ -8,6 +8,7 @@ from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from stamped.api.status import router as status_router
+from stamped.api.tiles import router as tiles_router
 from stamped.core.db import init_db
 from stamped.core.events import bus
 
@@ -30,6 +31,7 @@ app.add_middleware(
 )
 
 app.include_router(status_router, prefix="/api")
+app.include_router(tiles_router)
 
 
 @app.get("/api/events")
