@@ -1,10 +1,14 @@
+import subprocess
 import sys
 import webbrowser
+from pathlib import Path
 
 import click
 import uvicorn
 
 from stamped.core.config import settings
+
+_FRONTEND_DIR = Path(__file__).parent.parent.parent / "frontend"
 
 
 @click.group()
@@ -18,6 +22,18 @@ def cli() -> None:
 def start(port: int | None, no_browser: bool) -> None:
     """Start the Stamped server and open the browser."""
     p = port or settings.port
+
+    if not (_FRONTEND_DIR / "dist").exists():
+        click.echo("Building frontend…")
+        result = subprocess.run(
+            ["npm", "run", "build"],
+            cwd=_FRONTEND_DIR,
+            check=False,
+        )
+        if result.returncode != 0:
+            click.echo("Frontend build failed.", err=True)
+            sys.exit(1)
+
     if not no_browser:
         webbrowser.open(f"http://localhost:{p}")
     uvicorn.run("stamped.api.main:app", host="127.0.0.1", port=p, reload=False)
