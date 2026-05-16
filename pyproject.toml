@@ -67,6 +67,7 @@ known-first-party = ["stamped"]
 [tool.coverage.run]
 source = ["backend/stamped"]
 omit = ["backend/tests/*", "backend/stamped/migrations/*"]
+relative_files = true
 
 [tool.coverage.report]
 exclude_lines = ["if TYPE_CHECKING:", "pragma: no cover"]
