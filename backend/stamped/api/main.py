@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
+from stamped.api.quests import router as quests_router
 from stamped.api.status import router as status_router
 from stamped.api.tiles import router as tiles_router
 from stamped.core.db import init_db
@@ -31,6 +32,7 @@ app.add_middleware(
 )
 
 app.include_router(status_router, prefix="/api")
+app.include_router(quests_router, prefix="/api")
 app.include_router(tiles_router)
 
 
