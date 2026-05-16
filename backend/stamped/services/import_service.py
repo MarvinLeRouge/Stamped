@@ -1,7 +1,9 @@
+import bisect
 import hashlib
 import logging
 import sqlite3
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 
 from stamped.workers.exif_worker import ExifData, extract_exif
@@ -17,6 +19,12 @@ class ImportResult:
     indexed: int
     skipped: int
     errors: int
+
+
+@dataclass
+class InterpolationResult:
+    interpolated: int
+    still_orphan: int
 
 
 def scan_jpegs(directory: Path) -> list[Path]:
@@ -60,6 +68,60 @@ def _insert_photo(
             1 if exif.lat is None else 0,
         ),
     )
+
+
+def interpolate_gps_from_trackpoints(conn: sqlite3.Connection) -> InterpolationResult:
+    """
+    For each photo that has a timestamp but no GPS, attempt to interpolate
+    lat/lon from GPX trackpoints using bisect.
+
+    On success: sets lat, lon, captured_at_src='gpx_interp', is_orphan=0.
+    Photos outside the trackpoint time range remain is_orphan=1.
+    """
+    trackpoints = conn.execute(
+        "SELECT recorded_at, lat, lon FROM gpx_trackpoints ORDER BY recorded_at"
+    ).fetchall()
+
+    if not trackpoints:
+        return InterpolationResult(interpolated=0, still_orphan=0)
+
+    times = [tp["recorded_at"] for tp in trackpoints]
+
+    photos = conn.execute(
+        "SELECT id, captured_at FROM photos WHERE lat IS NULL AND captured_at IS NOT NULL"
+    ).fetchall()
+
+    interpolated = still_orphan = 0
+
+    for photo in photos:
+        ts = photo["captured_at"]
+        i = bisect.bisect_left(times, ts)
+
+        if i == 0 or i >= len(trackpoints):
+            still_orphan += 1
+            continue
+
+        a, b = trackpoints[i - 1], trackpoints[i]
+        ta = datetime.strptime(a["recorded_at"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
+        tb = datetime.strptime(b["recorded_at"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
+        tt = datetime.strptime(ts, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
+
+        span = (tb - ta).total_seconds()
+        t = (tt - ta).total_seconds() / span if span else 0.0
+
+        lat = a["lat"] + t * (b["lat"] - a["lat"])
+        lon = a["lon"] + t * (b["lon"] - a["lon"])
+
+        conn.execute(
+            "UPDATE photos SET lat=?, lon=?, captured_at_src='gpx_interp', is_orphan=0 WHERE id=?",
+            (lat, lon, photo["id"]),
+        )
+        interpolated += 1
+
+    if interpolated:
+        conn.commit()
+
+    return InterpolationResult(interpolated=interpolated, still_orphan=still_orphan)
 
 
 def import_directory(directory: Path, conn: sqlite3.Connection) -> ImportResult:
