@@ -4,6 +4,7 @@ docs/ai/
 
 # Runtime data
 data/
+data-samples/
 
 # Python
 __pycache__/
