@@ -42,9 +42,6 @@ jobs:
   test-backend:
     name: Test (backend)
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -63,9 +60,9 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.xml
           flags: backend
-          use_oidc: true
 
   # ── Node / Vue ────────────────────────────────────────────────────────────
 
@@ -96,9 +93,6 @@ jobs:
   test-frontend:
     name: Test (frontend)
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -119,6 +113,6 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: frontend/coverage/lcov.info
           flags: frontend
-          use_oidc: true
