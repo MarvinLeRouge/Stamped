@@ -7,8 +7,10 @@ import pytest
 from stamped.core.config import settings
 from stamped.core.db import get_connection, init_db
 from stamped.services.import_service import (
+    InterpolationResult,
     compute_hash,
     import_directory,
+    interpolate_gps_from_trackpoints,
     scan_jpegs,
 )
 from tests.conftest import make_jpeg
@@ -97,3 +99,125 @@ def test_import_directory_stores_absolute_path(tmp_path: Path, db_conn: sqlite3.
     import_directory(tmp_path, db_conn)
     row = db_conn.execute("SELECT file_path FROM photos").fetchone()
     assert Path(row["file_path"]).is_absolute()
+
+
+# ── interpolate_gps_from_trackpoints ─────────────────────────────────────────
+
+
+def _insert_trackpoints(conn: sqlite3.Connection, points: list[tuple[str, float, float]]) -> None:
+    """Insert (recorded_at, lat, lon) trackpoints via a fake gpx_file row."""
+    gpx_id = conn.execute(
+        "INSERT INTO gpx_files (file_path, file_hash, point_count) VALUES ('f.gpx','h',?)",
+        (len(points),),
+    ).lastrowid
+    conn.executemany(
+        "INSERT INTO gpx_trackpoints (gpx_file_id, recorded_at, lat, lon) VALUES (?,?,?,?)",
+        [(gpx_id, t, la, lo) for t, la, lo in points],
+    )
+    conn.commit()
+
+
+def _insert_orphan_photo(conn: sqlite3.Connection, captured_at: str, idx: int = 0) -> int:
+    row = conn.execute(
+        "INSERT INTO photos (file_path, file_hash, captured_at, captured_at_src, is_orphan)"
+        " VALUES (?,?,?,'exif',1)",
+        (f"p{idx}.jpg", f"h{idx}", captured_at),
+    )
+    conn.commit()
+    return row.lastrowid  # type: ignore[return-value]
+
+
+def test_interpolate_no_trackpoints_returns_zero(db_conn: sqlite3.Connection) -> None:
+    result = interpolate_gps_from_trackpoints(db_conn)
+    assert result == InterpolationResult(interpolated=0, still_orphan=0)
+
+
+def test_interpolate_photo_between_trackpoints_gets_position(
+    db_conn: sqlite3.Connection,
+) -> None:
+    _insert_trackpoints(
+        db_conn,
+        [
+            ("2024-07-14T08:00:00Z", 45.0, 6.0),
+            ("2024-07-14T10:00:00Z", 47.0, 8.0),
+        ],
+    )
+    pid = _insert_orphan_photo(db_conn, "2024-07-14T09:00:00Z")
+    result = interpolate_gps_from_trackpoints(db_conn)
+    assert result.interpolated == 1
+    assert result.still_orphan == 0
+    row = db_conn.execute(
+        "SELECT lat, lon, captured_at_src, is_orphan FROM photos WHERE id=?", (pid,)
+    ).fetchone()
+    assert abs(row["lat"] - 46.0) < 0.001
+    assert abs(row["lon"] - 7.0) < 0.001
+    assert row["captured_at_src"] == "gpx_interp"
+    assert row["is_orphan"] == 0
+
+
+def test_interpolate_photo_before_all_trackpoints_stays_orphan(
+    db_conn: sqlite3.Connection,
+) -> None:
+    _insert_trackpoints(
+        db_conn,
+        [
+            ("2024-07-14T10:00:00Z", 45.0, 6.0),
+            ("2024-07-14T12:00:00Z", 46.0, 7.0),
+        ],
+    )
+    _insert_orphan_photo(db_conn, "2024-07-14T08:00:00Z")
+    result = interpolate_gps_from_trackpoints(db_conn)
+    assert result.interpolated == 0
+    assert result.still_orphan == 1
+
+
+def test_interpolate_photo_after_all_trackpoints_stays_orphan(
+    db_conn: sqlite3.Connection,
+) -> None:
+    _insert_trackpoints(
+        db_conn,
+        [
+            ("2024-07-14T08:00:00Z", 45.0, 6.0),
+            ("2024-07-14T10:00:00Z", 46.0, 7.0),
+        ],
+    )
+    _insert_orphan_photo(db_conn, "2024-07-14T14:00:00Z")
+    result = interpolate_gps_from_trackpoints(db_conn)
+    assert result.interpolated == 0
+    assert result.still_orphan == 1
+
+
+def test_interpolate_photo_with_existing_gps_not_touched(
+    db_conn: sqlite3.Connection,
+) -> None:
+    _insert_trackpoints(
+        db_conn,
+        [
+            ("2024-07-14T08:00:00Z", 45.0, 6.0),
+            ("2024-07-14T10:00:00Z", 46.0, 7.0),
+        ],
+    )
+    db_conn.execute(
+        "INSERT INTO photos (file_path, file_hash, captured_at, captured_at_src, lat, lon, is_orphan)"
+        " VALUES ('x.jpg','hx','2024-07-14T09:00:00Z','exif',10.0,20.0,0)"
+    )
+    db_conn.commit()
+    result = interpolate_gps_from_trackpoints(db_conn)
+    assert result.interpolated == 0
+    row = db_conn.execute("SELECT lat FROM photos").fetchone()
+    assert row["lat"] == 10.0
+
+
+def test_interpolate_midpoint_is_exact(db_conn: sqlite3.Connection) -> None:
+    _insert_trackpoints(
+        db_conn,
+        [
+            ("2024-07-14T08:00:00Z", 44.0, 4.0),
+            ("2024-07-14T10:00:00Z", 46.0, 6.0),
+        ],
+    )
+    pid = _insert_orphan_photo(db_conn, "2024-07-14T09:00:00Z")
+    interpolate_gps_from_trackpoints(db_conn)
+    row = db_conn.execute("SELECT lat, lon FROM photos WHERE id=?", (pid,)).fetchone()
+    assert abs(row["lat"] - 45.0) < 1e-9
+    assert abs(row["lon"] - 5.0) < 1e-9
