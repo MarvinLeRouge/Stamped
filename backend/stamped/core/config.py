@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     data_dir: Path = Path("data")
     quest_gap_hours: int = 6
     thumb_size: int = 400
+    camera_utc_offset_hours: int = 0
 
 
 settings = Settings()

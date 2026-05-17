@@ -221,3 +221,50 @@ def test_interpolate_midpoint_is_exact(db_conn: sqlite3.Connection) -> None:
     row = db_conn.execute("SELECT lat, lon FROM photos WHERE id=?", (pid,)).fetchone()
     assert abs(row["lat"] - 45.0) < 1e-9
     assert abs(row["lon"] - 5.0) < 1e-9
+
+
+def test_interpolate_utc_offset_shifts_photo_timestamp(db_conn: sqlite3.Connection) -> None:
+    # GPX: 08:00–10:00 UTC. Photo at 10:00 "local" (UTC+2) = 08:00 UTC → hits the range.
+    _insert_trackpoints(
+        db_conn,
+        [
+            ("2024-07-14T08:00:00Z", 44.0, 4.0),
+            ("2024-07-14T10:00:00Z", 46.0, 6.0),
+        ],
+    )
+    pid = _insert_orphan_photo(db_conn, "2024-07-14T10:00:00Z")  # local CEST
+    result = interpolate_gps_from_trackpoints(db_conn, utc_offset_hours=2)
+    assert result.interpolated == 1
+    row = db_conn.execute("SELECT lat, lon FROM photos WHERE id=?", (pid,)).fetchone()
+    assert abs(row["lat"] - 44.0) < 0.001  # 10:00 local = 08:00 UTC → first trackpoint
+    assert abs(row["lon"] - 4.0) < 0.001
+
+
+def test_interpolate_utc_offset_orphan_without_offset(db_conn: sqlite3.Connection) -> None:
+    # Same photo would be orphan without the offset (10:00 UTC is beyond trackpoints end).
+    _insert_trackpoints(
+        db_conn,
+        [
+            ("2024-07-14T08:00:00Z", 44.0, 4.0),
+            ("2024-07-14T09:00:00Z", 45.0, 5.0),
+        ],
+    )
+    _insert_orphan_photo(db_conn, "2024-07-14T10:00:00Z")
+    result = interpolate_gps_from_trackpoints(db_conn, utc_offset_hours=0)
+    assert result.still_orphan == 1
+
+
+def test_interpolate_utc_offset_negative(db_conn: sqlite3.Connection) -> None:
+    # UTC-5: photo at 03:00 local = 08:00 UTC → within 08:00–10:00 GPX.
+    _insert_trackpoints(
+        db_conn,
+        [
+            ("2024-07-14T08:00:00Z", 44.0, 4.0),
+            ("2024-07-14T10:00:00Z", 46.0, 6.0),
+        ],
+    )
+    pid = _insert_orphan_photo(db_conn, "2024-07-14T03:00:00Z")  # local UTC-5
+    result = interpolate_gps_from_trackpoints(db_conn, utc_offset_hours=-5)
+    assert result.interpolated == 1
+    row = db_conn.execute("SELECT lat, lon FROM photos WHERE id=?", (pid,)).fetchone()
+    assert abs(row["lat"] - 44.0) < 0.001
