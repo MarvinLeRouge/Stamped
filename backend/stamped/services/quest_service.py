@@ -1,7 +1,7 @@
 import logging
 import sqlite3
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from stamped.core.config import settings
 
@@ -96,9 +96,13 @@ def cluster_quests(conn: sqlite3.Connection) -> ClusterResult:
         )
         photos_assigned += len(group)
 
+        offset = timedelta(hours=settings.camera_utc_offset_hours)
+        started_utc = (_parse_iso(started_at) - offset).strftime("%Y-%m-%dT%H:%M:%SZ")
+        ended_utc = (_parse_iso(ended_at) - offset).strftime("%Y-%m-%dT%H:%M:%SZ")
+
         gpx_rows = conn.execute(
             "SELECT id FROM gpx_files WHERE recorded_at_start <= ? AND recorded_at_end >= ?",
-            (ended_at, started_at),
+            (ended_utc, started_utc),
         ).fetchall()
 
         if gpx_rows:
