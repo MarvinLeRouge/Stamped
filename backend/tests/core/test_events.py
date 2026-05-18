@@ -86,6 +86,8 @@ async def test_stream_yields_ping_on_timeout() -> None:
     original_wait_for = asyncio.wait_for
 
     async def fast_timeout(coro: object, timeout: float) -> object:  # noqa: ARG001
+        if hasattr(coro, "close"):
+            coro.close()
         raise TimeoutError
 
     gen = bus.stream(q)
