@@ -13,7 +13,7 @@ export default mergeConfig(
         provider: 'v8',
         reporter: ['text', 'lcov'],
         reportsDirectory: './coverage',
-        include: ['src/**'],
+        include: ['src/**/*.ts', 'src/**/*.vue'],
         exclude: ['src/main.ts', 'src/App.vue', 'src/**/*.d.ts'],
       },
     },
