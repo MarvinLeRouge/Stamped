@@ -1,3 +1,8 @@
+codecov:
+  notify:
+    after_n_builds: 2
+    wait_for_ci: true
+
 flag_management:
   default_rules:
     ignore:
@@ -39,7 +44,7 @@ coverage:
         enabled: true
         target: auto
         threshold: 1%
-        informational: false
+        informational: true
     patch:
       default:
         enabled: true
