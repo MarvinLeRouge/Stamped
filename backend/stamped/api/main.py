@@ -47,7 +47,7 @@ if _FRONTEND_DIST.exists():
 else:
 
     @app.get("/")
-    async def _dev_notice() -> HTMLResponse:
+    async def _dev_notice() -> HTMLResponse:  # pragma: no cover
         return HTMLResponse(
             "<h1>Stamped</h1><p>Frontend not built. Run: <code>stamped start</code></p>"
         )

@@ -89,3 +89,33 @@ def test_import_gpx_directory_trackpoints_linked_to_file(
         "SELECT COUNT(*) FROM gpx_trackpoints WHERE gpx_file_id = ?", (gpx_id,)
     ).fetchone()[0]
     assert count == 3
+
+
+_GPX_NO_TIME = """\
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="test">
+  <trk><trkseg>
+    <trkpt lat="45.0" lon="6.0"><ele>1000</ele></trkpt>
+  </trkseg></trk>
+</gpx>"""
+
+
+def test_import_gpx_directory_counts_untimed_gpx_as_error(
+    tmp_path: Path, db_conn: sqlite3.Connection
+) -> None:
+    (tmp_path / "no_time.gpx").write_text(_GPX_NO_TIME, encoding="utf-8")
+    result = import_gpx_directory(tmp_path, db_conn)
+    assert result.errors == 1
+    assert result.indexed == 0
+
+
+def test_import_gpx_directory_counts_errors_on_exception(
+    tmp_path: Path, db_conn: sqlite3.Connection
+) -> None:
+    _make_gpx(tmp_path / "track.gpx")
+    from unittest.mock import patch
+
+    with patch("stamped.services.gpx_service._compute_hash", side_effect=OSError("disk error")):
+        result = import_gpx_directory(tmp_path, db_conn)
+    assert result.errors == 1
+    assert result.indexed == 0
