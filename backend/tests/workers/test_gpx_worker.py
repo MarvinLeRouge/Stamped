@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from stamped.workers.gpx_worker import parse_gpx
+from stamped.workers.gpx_worker import _iso, parse_gpx
 
 _GPX_TEMPLATE = """\
 <?xml version="1.0" encoding="UTF-8"?>
@@ -101,3 +101,7 @@ def test_parse_gpx_computes_positive_elevation_gain(tmp_path: Path) -> None:
     result = parse_gpx(gpx)
     assert result is not None
     assert result.elevation_gain_m > 0
+
+
+def test_iso_none_returns_none() -> None:
+    assert _iso(None) is None

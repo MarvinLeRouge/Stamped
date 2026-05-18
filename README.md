@@ -7,8 +7,8 @@
 ![Vue.js](https://img.shields.io/badge/Vue.js-3-4FC08D?logo=vuedotjs&logoColor=white)
 ![SQLite](https://img.shields.io/badge/SQLite-3-003B57?logo=sqlite&logoColor=white)
 [![CI](https://github.com/MarvinLeRouge/Stamped/actions/workflows/ci.yml/badge.svg)](https://github.com/MarvinLeRouge/Stamped/actions)
-[![codecov backend](https://img.shields.io/codecov/c/github/MarvinLeRouge/Stamped?flag=backend&label=backend%20coverage&logo=codecov)](https://codecov.io/gh/MarvinLeRouge/Stamped)
-[![codecov frontend](https://img.shields.io/codecov/c/github/MarvinLeRouge/Stamped?flag=frontend&label=frontend%20coverage&logo=codecov)](https://codecov.io/gh/MarvinLeRouge/Stamped)
+[![codecov backend](https://img.shields.io/codecov/c/github/MarvinLeRouge/Stamped?flag=backend&label=backend&logo=codecov)](https://codecov.io/gh/MarvinLeRouge/Stamped)
+[![codecov frontend](https://img.shields.io/codecov/c/github/MarvinLeRouge/Stamped?flag=frontend&label=frontend&logo=codecov)](https://codecov.io/gh/MarvinLeRouge/Stamped)
 ![License](https://img.shields.io/github/license/MarvinLeRouge/Stamped?cacheSeconds=3600)
 
 Stamped is a local web app that turns your photo library and GPX tracks into a personal territory map. Import a folder, and every geotagged photo appears as a marker on the map. Explore by date, location, or quest. Nothing is uploaded anywhere.

@@ -101,6 +101,18 @@ def test_import_directory_stores_absolute_path(tmp_path: Path, db_conn: sqlite3.
     assert Path(row["file_path"]).is_absolute()
 
 
+def test_import_directory_counts_errors_on_exception(
+    tmp_path: Path, db_conn: sqlite3.Connection
+) -> None:
+    make_jpeg(tmp_path / "photo.jpg")
+    from unittest.mock import patch
+
+    with patch("stamped.services.import_service.compute_hash", side_effect=OSError("disk error")):
+        result = import_directory(tmp_path, db_conn)
+    assert result.errors == 1
+    assert result.indexed == 0
+
+
 # ── interpolate_gps_from_trackpoints ─────────────────────────────────────────
 
 

@@ -1,6 +1,7 @@
 from pathlib import Path
+from typing import Any
 
-from stamped.workers.exif_worker import ExifData, extract_exif
+from stamped.workers.exif_worker import ExifData, _parse_datetime, _parse_gps, extract_exif
 from tests.conftest import make_jpeg
 
 
@@ -51,3 +52,27 @@ def test_extract_exif_western_hemisphere_negative_lon(tmp_path: Path) -> None:
 def test_extract_exif_missing_file_returns_empty(tmp_path: Path) -> None:
     result = extract_exif(tmp_path / "nonexistent.jpg")
     assert result == ExifData(None, None, None, None, None)
+
+
+def test_parse_gps_returns_none_on_malformed_rational() -> None:
+    class BrokenRational:
+        @property
+        def num(self) -> float:
+            raise AttributeError("broken")
+
+        den: int = 1
+
+    class FakeTag:
+        values: list[Any] = [BrokenRational(), BrokenRational(), BrokenRational()]
+
+    lat, lon = _parse_gps({"GPS GPSLatitude": FakeTag(), "GPS GPSLongitude": FakeTag()})
+    assert lat is None
+    assert lon is None
+
+
+def test_parse_datetime_skips_malformed_value() -> None:
+    class FakeTag:
+        values = "not-a-valid-date"
+
+    result = _parse_datetime({"EXIF DateTimeOriginal": FakeTag()})
+    assert result is None
