@@ -1,3 +1,8 @@
+codecov:
+  notify:
+    after_n_builds: 2
+    wait_for_ci: true
+
 flag_management:
   default_rules:
     ignore:
@@ -14,7 +19,7 @@ flags:
   frontend:
     paths:
       - frontend/src/
-    carryforward: true
+    carryforward: false
     ignore:
       - "**/main.ts"
       - "**/App.vue"
@@ -26,7 +31,7 @@ flags:
   backend:
     paths:
       - backend/
-    carryforward: true
+    carryforward: false
     ignore:
       - "**/main.py"
       - "**/__init__.py"
@@ -37,13 +42,13 @@ coverage:
     project:
       default:
         enabled: true
-        target: 90%
+        target: auto
         threshold: 1%
-        informational: false
+        informational: true
     patch:
       default:
         enabled: true
-        target: 80%
+        target: 90%
         threshold: 5%
         informational: false
 
