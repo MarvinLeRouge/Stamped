@@ -37,13 +37,13 @@ coverage:
     project:
       default:
         enabled: true
-        target: 90%
+        target: auto
         threshold: 1%
         informational: false
     patch:
       default:
         enabled: true
-        target: 80%
+        target: 90%
         threshold: 5%
         informational: false
 

@@ -64,7 +64,6 @@ jobs:
           files: coverage.xml
           flags: backend
           fail_ci_if_error: true
-          verbose: true
 
   # ── Node / Vue ────────────────────────────────────────────────────────────
 
@@ -119,4 +118,3 @@ jobs:
           files: frontend/coverage/lcov.info
           flags: frontend
           fail_ci_if_error: true
-          verbose: true
