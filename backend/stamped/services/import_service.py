@@ -3,7 +3,7 @@ import hashlib
 import logging
 import sqlite3
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from stamped.workers.exif_worker import ExifData, extract_exif
@@ -70,10 +70,17 @@ def _insert_photo(
     )
 
 
-def interpolate_gps_from_trackpoints(conn: sqlite3.Connection) -> InterpolationResult:
+def interpolate_gps_from_trackpoints(
+    conn: sqlite3.Connection,
+    utc_offset_hours: int = 0,
+) -> InterpolationResult:
     """
     For each photo that has a timestamp but no GPS, attempt to interpolate
     lat/lon from GPX trackpoints using bisect.
+
+    utc_offset_hours: camera's UTC offset (e.g. 2 for CEST). EXIF timestamps
+    are local time with no timezone indicator; this offset converts them to UTC
+    before comparing against GPX trackpoints (which are always UTC).
 
     On success: sets lat, lon, captured_at_src='gpx_interp', is_orphan=0.
     Photos outside the trackpoint time range remain is_orphan=1.
@@ -94,8 +101,10 @@ def interpolate_gps_from_trackpoints(conn: sqlite3.Connection) -> InterpolationR
     interpolated = still_orphan = 0
 
     for photo in photos:
-        ts = photo["captured_at"]
-        i = bisect.bisect_left(times, ts)
+        ts_local = datetime.strptime(photo["captured_at"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
+        ts_utc = ts_local - timedelta(hours=utc_offset_hours)
+        ts = ts_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+        i = bisect.bisect_right(times, ts)
 
         if i == 0 or i >= len(trackpoints):
             still_orphan += 1
@@ -104,7 +113,7 @@ def interpolate_gps_from_trackpoints(conn: sqlite3.Connection) -> InterpolationR
         a, b = trackpoints[i - 1], trackpoints[i]
         ta = datetime.strptime(a["recorded_at"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
         tb = datetime.strptime(b["recorded_at"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
-        tt = datetime.strptime(ts, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
+        tt = ts_utc
 
         span = (tb - ta).total_seconds()
         t = (tt - ta).total_seconds() / span if span else 0.0

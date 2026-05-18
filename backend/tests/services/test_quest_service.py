@@ -168,6 +168,38 @@ def test_cluster_quests_gpx_no_overlap(
     assert row["has_gpx"] == 0
 
 
+def test_cluster_quests_gpx_overlap_with_utc_offset(
+    db_conn: sqlite3.Connection, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Photos stored as local CEST (UTC+2): 10:00–12:00 local = 08:00–10:00 UTC.
+    # GPX in true UTC: 07:55–09:30. The GPX ends before the local photo window
+    # starts (09:30 < 10:00), so without offset correction there is no overlap.
+    # With offset=2 the corrected quest window (08:00–10:00 UTC) overlaps the GPX.
+    monkeypatch.setattr(settings, "quest_gap_hours", 6)
+    monkeypatch.setattr(settings, "camera_utc_offset_hours", 2)
+    _insert_photo(db_conn, "2024-07-14T10:00:00Z")  # local CEST
+    _insert_photo(db_conn, "2024-07-14T12:00:00Z")  # local CEST
+    _insert_gpx(db_conn, "2024-07-14T07:55:00Z", "2024-07-14T09:30:00Z")  # UTC
+    result = cluster_quests(db_conn)
+    assert result.gpx_assigned == 1
+    row = db_conn.execute("SELECT has_gpx FROM quests").fetchone()
+    assert row["has_gpx"] == 1
+
+
+def test_cluster_quests_gpx_no_overlap_without_utc_offset(
+    db_conn: sqlite3.Connection, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Same data as above but offset=0: quest window stays at 10:00–12:00 and the
+    # GPX ends at 09:30 → no overlap (09:30 < 10:00).
+    monkeypatch.setattr(settings, "quest_gap_hours", 6)
+    monkeypatch.setattr(settings, "camera_utc_offset_hours", 0)
+    _insert_photo(db_conn, "2024-07-14T10:00:00Z")
+    _insert_photo(db_conn, "2024-07-14T12:00:00Z")
+    _insert_gpx(db_conn, "2024-07-14T07:55:00Z", "2024-07-14T09:30:00Z")  # UTC
+    result = cluster_quests(db_conn)
+    assert result.gpx_assigned == 0
+
+
 def test_cluster_quests_idempotent(
     db_conn: sqlite3.Connection, monkeypatch: pytest.MonkeyPatch
 ) -> None:
