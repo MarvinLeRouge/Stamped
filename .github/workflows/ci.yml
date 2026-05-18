@@ -63,6 +63,8 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.xml
           flags: backend
+          fail_ci_if_error: true
+          verbose: true
 
   # ── Node / Vue ────────────────────────────────────────────────────────────
 
@@ -116,3 +118,5 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: frontend/coverage/lcov.info
           flags: frontend
+          fail_ci_if_error: true
+          verbose: true
