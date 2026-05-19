@@ -256,6 +256,137 @@ def test_get_quest_photos_no_photos_returns_empty(tmp_path: Path) -> None:
         app.dependency_overrides.clear()
 
 
+# ── GET /api/quests/{id}/gpx ──────────────────────────────────────────────────
+
+
+def _gpx_client_single(tmp_path: Path) -> tuple[TestClient, int]:
+    """Quest with one real GPX file on disk."""
+    init_db()
+    gpx_file = tmp_path / "track.gpx"
+    gpx_file.write_text(
+        '<?xml version="1.0"?><gpx version="1.1" creator="test"></gpx>', encoding="utf-8"
+    )
+
+    with get_connection() as conn:
+        conn.execute(
+            "INSERT INTO quests (auto_name, started_at, ended_at, photo_count, has_gpx)"
+            " VALUES ('Quest GPX', '2024-06-01T08:00:00Z', '2024-06-01T10:00:00Z', 0, 1)"
+        )
+        quest_id: int = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+        conn.execute(
+            "INSERT INTO gpx_files (quest_id, file_path, file_hash) VALUES (?, ?, 'h1')",
+            (quest_id, str(gpx_file)),
+        )
+        conn.commit()
+
+    def _override_db() -> Generator[sqlite3.Connection, None, None]:
+        with get_connection() as conn:
+            yield conn
+
+    app.dependency_overrides[get_db] = _override_db
+    return TestClient(app), quest_id
+
+
+def _gpx_client_multi(tmp_path: Path) -> tuple[TestClient, int]:
+    """Quest with two GPX files — response must be generated from trackpoints."""
+    init_db()
+
+    with get_connection() as conn:
+        conn.execute(
+            "INSERT INTO quests (auto_name, started_at, ended_at, photo_count, has_gpx)"
+            " VALUES ('Quest Multi', '2024-06-01T08:00:00Z', '2024-06-01T10:00:00Z', 0, 1)"
+        )
+        quest_id: int = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+        conn.execute(
+            "INSERT INTO gpx_files (quest_id, file_path, file_hash) VALUES (?, 'a.gpx', 'ha')",
+            (quest_id,),
+        )
+        gpx1: int = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+        conn.execute(
+            "INSERT INTO gpx_files (quest_id, file_path, file_hash) VALUES (?, 'b.gpx', 'hb')",
+            (quest_id,),
+        )
+        gpx2: int = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+        conn.executemany(
+            "INSERT INTO gpx_trackpoints (gpx_file_id, recorded_at, lat, lon) VALUES (?,?,?,?)",
+            [
+                (gpx1, "2024-06-01T08:00:00Z", 44.0, 6.0),
+                (gpx2, "2024-06-01T09:00:00Z", 45.0, 7.0),
+            ],
+        )
+        conn.commit()
+
+    def _override_db() -> Generator[sqlite3.Connection, None, None]:
+        with get_connection() as conn:
+            yield conn
+
+    app.dependency_overrides[get_db] = _override_db
+    return TestClient(app), quest_id
+
+
+def test_get_gpx_unknown_quest_returns_404(tmp_path: Path) -> None:
+    init_db()
+    r = TestClient(app).get("/api/quests/999/gpx")
+    assert r.status_code == 404
+
+
+def test_get_gpx_no_gpx_file_returns_404(tmp_path: Path) -> None:
+    c = _seeded_client(tmp_path)
+    try:
+        quest_id = c.get("/api/quests").json()[0]["id"]
+        r = c.get(f"/api/quests/{quest_id}/gpx")
+        assert r.status_code == 404
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_get_gpx_single_file_returns_gpx_content_type(tmp_path: Path) -> None:
+    c, quest_id = _gpx_client_single(tmp_path)
+    try:
+        r = c.get(f"/api/quests/{quest_id}/gpx")
+        assert r.status_code == 200
+        assert "gpx" in r.headers["content-type"]
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_get_gpx_single_file_has_attachment_header(tmp_path: Path) -> None:
+    c, quest_id = _gpx_client_single(tmp_path)
+    try:
+        r = c.get(f"/api/quests/{quest_id}/gpx")
+        assert "attachment" in r.headers["content-disposition"]
+        assert ".gpx" in r.headers["content-disposition"]
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_get_gpx_multi_file_returns_valid_xml(tmp_path: Path) -> None:
+    c, quest_id = _gpx_client_multi(tmp_path)
+    try:
+        r = c.get(f"/api/quests/{quest_id}/gpx")
+        assert r.status_code == 200
+        import xml.etree.ElementTree as ET
+
+        root = ET.fromstring(r.content)
+        assert root.tag.endswith("gpx")
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_get_gpx_multi_file_contains_two_tracks(tmp_path: Path) -> None:
+    c, quest_id = _gpx_client_multi(tmp_path)
+    try:
+        r = c.get(f"/api/quests/{quest_id}/gpx")
+        import xml.etree.ElementTree as ET
+
+        ns = {"gpx": "http://www.topografix.com/GPX/1/1"}
+        root = ET.fromstring(r.content)
+        tracks = root.findall("gpx:trk", ns)
+        assert len(tracks) == 2
+    finally:
+        app.dependency_overrides.clear()
+
+
 # ── PATCH /api/quests/{id} ────────────────────────────────────────────────────
 
 
