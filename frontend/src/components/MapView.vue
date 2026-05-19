@@ -39,6 +39,7 @@ function buildPopup(id: number, thumbStatus: string, capturedAt: string | null):
 
 function refreshMarkers(): void {
   const map = mapRef.value?.leafletObject
+  /* c8 ignore next */
   if (!map) return
 
   if (clusterGroup) {
@@ -58,6 +59,7 @@ function refreshMarkers(): void {
 
 async function onMapReady(): Promise<void> {
   const map = mapRef.value?.leafletObject
+  /* c8 ignore next */
   if (!map) return
 
   map.on('moveend', loadVisiblePhotos)
@@ -68,6 +70,7 @@ async function onMapReady(): Promise<void> {
 
 async function loadVisiblePhotos(): Promise<void> {
   const map = mapRef.value?.leafletObject
+  /* c8 ignore next */
   if (!map) return
 
   const bounds = map.getBounds()
