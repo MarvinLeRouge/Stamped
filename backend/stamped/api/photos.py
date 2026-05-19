@@ -88,11 +88,20 @@ def list_photos(
 
 def _get_photo_or_404(conn: sqlite3.Connection, photo_id: int) -> sqlite3.Row:
     row: sqlite3.Row | None = conn.execute(
-        "SELECT id, thumb_path, thumb_status FROM photos WHERE id = ?", (photo_id,)
+        "SELECT id, file_path, thumb_path, thumb_status FROM photos WHERE id = ?", (photo_id,)
     ).fetchone()
     if row is None:
         raise HTTPException(status_code=404, detail="Photo not found")
     return row
+
+
+@router.get("/photos/{photo_id}/original")
+async def get_original(
+    photo_id: int,
+    conn: Annotated[sqlite3.Connection, Depends(get_db)],
+) -> Response:
+    row = _get_photo_or_404(conn, photo_id)
+    return FileResponse(row["file_path"], media_type="image/jpeg")
 
 
 @router.get("/photos/{photo_id}/thumb")

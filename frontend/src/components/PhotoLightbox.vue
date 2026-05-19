@@ -18,7 +18,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
     <div v-if="store.photoId !== null" class="lightbox" @click.self="store.close()">
       <div class="lightbox__box">
         <button class="lightbox__close" aria-label="Fermer" @click="store.close()">×</button>
-        <img :src="`/api/photos/${store.photoId}/thumb`" class="lightbox__img" alt="photo" />
+        <img :src="`/api/photos/${store.photoId}/original`" class="lightbox__img" alt="photo" />
       </div>
     </div>
   </Teleport>
