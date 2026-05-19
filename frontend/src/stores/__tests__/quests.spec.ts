@@ -64,20 +64,20 @@ describe('useQuestsStore', () => {
   })
 
   it('renameQuest updates the quest name in the list', async () => {
-    const updated = { ...mockQuests[0], name: 'Mon aventure' }
-    vi.mocked(api).patch.mockResolvedValue({ data: updated })
+    const base = mockQuests[0]!
+    vi.mocked(api).patch.mockResolvedValue({ data: { ...base, name: 'Mon aventure' } })
     const store = useQuestsStore()
     store.quests = [...mockQuests]
     await store.renameQuest(1, 'Mon aventure')
-    expect(store.quests[0].name).toBe('Mon aventure')
+    expect(store.quests[0]!.name).toBe('Mon aventure')
   })
 
   it('renameQuest with null clears the name', async () => {
-    const updated = { ...mockQuests[0], name: null }
-    vi.mocked(api).patch.mockResolvedValue({ data: updated })
+    const base = mockQuests[0]!
+    vi.mocked(api).patch.mockResolvedValue({ data: { ...base, name: null } })
     const store = useQuestsStore()
-    store.quests = [{ ...mockQuests[0], name: 'Old name' }]
+    store.quests = [{ ...base, name: 'Old name' }]
     await store.renameQuest(1, null)
-    expect(store.quests[0].name).toBeNull()
+    expect(store.quests[0]!.name).toBeNull()
   })
 })
