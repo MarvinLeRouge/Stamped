@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import api from '@/api'
 import { useQuestsStore } from '@/stores/quests'
 
-vi.mock('@/api', () => ({ default: { get: vi.fn() } }))
+vi.mock('@/api', () => ({ default: { get: vi.fn(), patch: vi.fn() } }))
 const mockApi = vi.mocked(api)
 
 const mockQuests = [
@@ -61,5 +61,23 @@ describe('useQuestsStore', () => {
     store.selectQuest(1)
     store.selectQuest(null)
     expect(store.selectedQuestId).toBeNull()
+  })
+
+  it('renameQuest updates the quest name in the list', async () => {
+    const base = mockQuests[0]!
+    vi.mocked(api).patch.mockResolvedValue({ data: { ...base, name: 'Mon aventure' } })
+    const store = useQuestsStore()
+    store.quests = [...mockQuests]
+    await store.renameQuest(1, 'Mon aventure')
+    expect(store.quests[0]!.name).toBe('Mon aventure')
+  })
+
+  it('renameQuest with null clears the name', async () => {
+    const base = mockQuests[0]!
+    vi.mocked(api).patch.mockResolvedValue({ data: { ...base, name: null } })
+    const store = useQuestsStore()
+    store.quests = [{ ...base, name: 'Old name' }]
+    await store.renameQuest(1, null)
+    expect(store.quests[0]!.name).toBeNull()
   })
 })

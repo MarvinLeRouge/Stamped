@@ -2,6 +2,7 @@
 import MapView from '@/components/MapView.vue'
 import PhotoLightbox from '@/components/PhotoLightbox.vue'
 import QuestList from '@/components/QuestList.vue'
+import QuestStoryline from '@/components/QuestStoryline.vue'
 import StatusDashboard from '@/components/StatusDashboard.vue'
 </script>
 
@@ -13,6 +14,7 @@ import StatusDashboard from '@/components/StatusDashboard.vue'
     </header>
     <div class="content">
       <QuestList />
+      <QuestStoryline />
       <main class="map-container">
         <MapView />
       </main>
