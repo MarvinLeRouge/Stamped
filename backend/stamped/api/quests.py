@@ -149,6 +149,15 @@ def place_quest_orphans(
         "UPDATE photos SET lat = ?, lon = ?, is_orphan = 0 WHERE quest_id = ? AND is_orphan = 1",
         (lat, lon, quest_id),
     )
+    conn.execute(
+        """UPDATE quests SET
+            bbox_lat_min = (SELECT MIN(lat) FROM photos WHERE quest_id = ? AND lat IS NOT NULL),
+            bbox_lat_max = (SELECT MAX(lat) FROM photos WHERE quest_id = ? AND lat IS NOT NULL),
+            bbox_lon_min = (SELECT MIN(lon) FROM photos WHERE quest_id = ? AND lon IS NOT NULL),
+            bbox_lon_max = (SELECT MAX(lon) FROM photos WHERE quest_id = ? AND lon IS NOT NULL)
+        WHERE id = ?""",
+        (quest_id, quest_id, quest_id, quest_id, quest_id),
+    )
     conn.commit()
     return QuestPlaceResponse(placed=result.rowcount, lat=lat, lon=lon)
 

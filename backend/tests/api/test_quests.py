@@ -559,3 +559,19 @@ def test_place_already_placed_quest_places_zero(tmp_path: Path) -> None:
         assert r.json()["placed"] == 0
     finally:
         app.dependency_overrides.clear()
+
+
+def test_place_updates_quest_bbox(tmp_path: Path) -> None:
+    c, quest_id = _place_client(tmp_path)
+    try:
+        c.post(f"/api/quests/{quest_id}/place", json={"lat": 44.0, "lon": 6.0})
+        with get_connection() as conn:
+            row = conn.execute(
+                "SELECT bbox_lat_min, bbox_lat_max, bbox_lon_min, bbox_lon_max"
+                " FROM quests WHERE id = ?",
+                (quest_id,),
+            ).fetchone()
+        assert row["bbox_lat_min"] is not None
+        assert row["bbox_lat_max"] is not None
+    finally:
+        app.dependency_overrides.clear()
