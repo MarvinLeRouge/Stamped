@@ -21,6 +21,11 @@ class PhotoSummary(BaseModel):
     is_orphan: bool
 
 
+class PhotoPatch(BaseModel):
+    lat: float
+    lon: float
+
+
 @router.get("/photos", response_model=list[PhotoSummary])
 def list_photos(
     conn: Annotated[sqlite3.Connection, Depends(get_db)],
@@ -93,6 +98,36 @@ def _get_photo_or_404(conn: sqlite3.Connection, photo_id: int) -> sqlite3.Row:
     if row is None:
         raise HTTPException(status_code=404, detail="Photo not found")
     return row
+
+
+@router.patch("/photos/{photo_id}", response_model=PhotoSummary)
+def patch_photo(
+    photo_id: int,
+    body: PhotoPatch,
+    conn: Annotated[sqlite3.Connection, Depends(get_db)],
+) -> PhotoSummary:
+    row = conn.execute("SELECT id FROM photos WHERE id = ?", (photo_id,)).fetchone()
+    if row is None:
+        raise HTTPException(status_code=404, detail="Photo not found")
+    conn.execute(
+        "UPDATE photos SET lat = ?, lon = ?, is_orphan = 0 WHERE id = ?",
+        (body.lat, body.lon, photo_id),
+    )
+    conn.commit()
+    r = conn.execute(
+        "SELECT id, lat, lon, captured_at, thumb_status, quest_id, is_orphan"
+        " FROM photos WHERE id = ?",
+        (photo_id,),
+    ).fetchone()
+    return PhotoSummary(
+        id=r["id"],
+        lat=r["lat"],
+        lon=r["lon"],
+        captured_at=r["captured_at"],
+        thumb_status=r["thumb_status"],
+        quest_id=r["quest_id"],
+        is_orphan=bool(r["is_orphan"]),
+    )
 
 
 @router.get("/photos/{photo_id}/original")
