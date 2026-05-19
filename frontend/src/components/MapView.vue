@@ -10,6 +10,7 @@ import { ref, watch } from 'vue'
 
 import { usePhotosStore } from '@/stores/photos'
 import { useQuestsStore } from '@/stores/quests'
+import { useLightboxStore } from '@/stores/lightbox'
 
 const TILE_URL = '/tiles/{z}/{x}/{y}.png'
 const TILE_ATTRIBUTION =
@@ -19,19 +20,41 @@ const ZOOM = 5
 
 const photosStore = usePhotosStore()
 const questsStore = useQuestsStore()
+const lightboxStore = useLightboxStore()
 
 const mapRef = ref<{ leafletObject: L.Map } | null>(null)
 let clusterGroup: L.MarkerClusterGroup | null = null
 
-function buildPopup(id: number, thumbStatus: string, capturedAt: string | null): string {
-  const date = capturedAt ? capturedAt.slice(0, 10) : ''
+function formatDate(capturedAt: string | null): string {
+  if (!capturedAt) return ''
+  const dt = new Date(capturedAt)
+  return dt.toLocaleString(undefined, {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
+}
+
+function buildPopup(
+  id: number,
+  thumbStatus: string,
+  capturedAt: string | null,
+  index: number | null,
+): string {
+  const date = formatDate(capturedAt)
+  const badge = index !== null ? `<span class="popup-index">${index}</span>` : ''
   if (thumbStatus === 'done') {
     return `<div class="photo-popup">
-      <img src="/api/photos/${id}/thumb" alt="photo" width="150" />
+      ${badge}
+      <img src="/api/photos/${id}/thumb" alt="photo" width="150" class="popup-thumb" style="cursor:pointer" />
       <p class="popup-date">${date}</p>
     </div>`
   }
   return `<div class="photo-popup">
+    ${badge}
     <p class="popup-generating">Generating…</p>
     <p class="popup-date">${date}</p>
   </div>`
@@ -47,12 +70,21 @@ function refreshMarkers(): void {
   }
   clusterGroup = L.markerClusterGroup()
 
-  for (const photo of photosStore.photos) {
-    if (photo.lat === null || photo.lon === null) continue
-    const marker = L.marker([photo.lat, photo.lon])
-    marker.bindPopup(buildPopup(photo.id, photo.thumb_status, photo.captured_at))
-    clusterGroup.addLayer(marker)
-  }
+  const geolocated = photosStore.photos.filter((p) => p.lat !== null && p.lon !== null)
+  const inQuest = questsStore.selectedQuestId !== null
+
+  geolocated.forEach((photo, i) => {
+    const index = inQuest ? i + 1 : null
+    const marker = L.marker([photo.lat as number, photo.lon as number])
+    marker.bindPopup(buildPopup(photo.id, photo.thumb_status, photo.captured_at, index))
+    marker.on('popupopen', () => {
+      const img = marker.getPopup()?.getElement()?.querySelector('img.popup-thumb')
+      if (img) {
+        img.addEventListener('click', () => lightboxStore.open(photo.id), { once: true })
+      }
+    })
+    clusterGroup!.addLayer(marker)
+  })
 
   map.addLayer(clusterGroup)
 }
@@ -128,9 +160,24 @@ watch(
 </style>
 
 <style>
+.photo-popup {
+  position: relative;
+}
 .photo-popup img {
   display: block;
   border-radius: 4px;
+}
+.popup-index {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  line-height: 1.4;
 }
 .popup-date {
   margin-top: 4px;

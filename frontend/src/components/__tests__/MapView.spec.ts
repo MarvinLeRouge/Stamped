@@ -8,7 +8,7 @@ import { useQuestsStore } from '@/stores/quests'
 
 // ── Leaflet mocks ─────────────────────────────────────────────────────────────
 
-const mockMarker = { bindPopup: vi.fn().mockReturnThis() }
+const mockMarker = { bindPopup: vi.fn().mockReturnThis(), on: vi.fn() }
 const mockCluster = { addLayer: vi.fn() }
 const mockMap = {
   removeLayer: vi.fn(),
@@ -164,7 +164,7 @@ describe('MapView — logic', () => {
     const popup = mockMarker.bindPopup.mock.calls.at(-1)?.[0] as string
     expect(popup).toContain('<img')
     expect(popup).toContain('/api/photos/3/thumb')
-    expect(popup).toContain('2024-07-14')
+    expect(popup).toContain('2024')
   })
 
   it('buildPopup with pending status shows Generating', async () => {
