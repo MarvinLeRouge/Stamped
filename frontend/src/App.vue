@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import MapView from '@/components/MapView.vue'
+import QuestList from '@/components/QuestList.vue'
 import StatusDashboard from '@/components/StatusDashboard.vue'
 </script>
 
@@ -9,9 +10,12 @@ import StatusDashboard from '@/components/StatusDashboard.vue'
       <h1 class="logo">Stamped</h1>
       <StatusDashboard />
     </header>
-    <main class="map-container">
-      <MapView />
-    </main>
+    <div class="content">
+      <QuestList />
+      <main class="map-container">
+        <MapView />
+      </main>
+    </div>
   </div>
 </template>
 
@@ -54,6 +58,12 @@ body,
   font-size: 1.1rem;
   font-weight: 700;
   letter-spacing: 0.05em;
+}
+
+.content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
 }
 
 .map-container {

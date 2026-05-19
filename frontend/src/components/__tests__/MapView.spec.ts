@@ -1,4 +1,5 @@
-import { describe, expect, it, vi } from 'vitest'
+import { createPinia, setActivePinia } from 'pinia'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 
 import MapView from '../MapView.vue'
@@ -16,7 +17,16 @@ vi.mock('@vue-leaflet/vue-leaflet', () => ({
   },
 }))
 
+vi.mock('leaflet.markercluster', () => ({}))
+vi.mock('leaflet.markercluster/dist/MarkerCluster.css', () => ({}))
+vi.mock('leaflet.markercluster/dist/MarkerCluster.Default.css', () => ({}))
+vi.mock('@/api', () => ({ default: { get: vi.fn() } }))
+
 describe('MapView', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+  })
+
   it('renders without error', () => {
     const wrapper = mount(MapView)
     expect(wrapper.exists()).toBe(true)
