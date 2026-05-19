@@ -36,9 +36,15 @@ export const useQuestsStore = defineStore('quests', () => {
     }
   }
 
+  async function renameQuest(id: number, name: string | null): Promise<void> {
+    const { data } = await api.patch<Quest>(`/quests/${id}`, { name })
+    const idx = quests.value.findIndex((q) => q.id === id)
+    if (idx !== -1) quests.value[idx] = data
+  }
+
   function selectQuest(id: number | null): void {
     selectedQuestId.value = id
   }
 
-  return { quests, selectedQuestId, loading, error, fetchQuests, selectQuest }
+  return { quests, selectedQuestId, loading, error, fetchQuests, renameQuest, selectQuest }
 })

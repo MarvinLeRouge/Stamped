@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 
 import api from '@/api'
 import { useLightboxStore } from '@/stores/lightbox'
@@ -18,6 +18,43 @@ const lightboxStore = useLightboxStore()
 const photos = ref<StorylinePhoto[]>([])
 const loading = ref(false)
 
+const editing = ref(false)
+const editValue = ref('')
+const inputRef = ref<HTMLInputElement | null>(null)
+
+const selectedQuest = computed(
+  () => questsStore.quests.find((q) => q.id === questsStore.selectedQuestId) ?? null,
+)
+
+function questLabel(): string {
+  if (!selectedQuest.value) return 'Storyline'
+  return selectedQuest.value.name ?? selectedQuest.value.auto_name
+}
+
+async function startEdit(): Promise<void> {
+  if (!selectedQuest.value) return
+  editValue.value = selectedQuest.value.name ?? ''
+  editing.value = true
+  await nextTick()
+  inputRef.value?.select()
+}
+
+function cancelEdit(): void {
+  editing.value = false
+}
+
+async function commitEdit(): Promise<void> {
+  if (!questsStore.selectedQuestId) return
+  editing.value = false
+  const trimmed = editValue.value.trim()
+  await questsStore.renameQuest(questsStore.selectedQuestId, trimmed || null)
+}
+
+function onInputKeydown(e: KeyboardEvent): void {
+  if (e.key === 'Enter') commitEdit()
+  if (e.key === 'Escape') cancelEdit()
+}
+
 function formatDate(capturedAt: string | null): string {
   if (!capturedAt) return '—'
   return new Date(capturedAt).toLocaleString(undefined, {
@@ -34,6 +71,7 @@ watch(
   () => questsStore.selectedQuestId,
   async (id) => {
     photos.value = []
+    editing.value = false
     if (id === null) return
     loading.value = true
     try {
@@ -49,7 +87,28 @@ watch(
 
 <template>
   <aside v-if="questsStore.selectedQuestId !== null" class="storyline">
-    <h2 class="storyline__title">Storyline</h2>
+    <div class="storyline__header">
+      <template v-if="editing">
+        <input
+          ref="inputRef"
+          v-model="editValue"
+          class="storyline__name-input"
+          @keydown="onInputKeydown"
+          @blur="commitEdit"
+        />
+      </template>
+      <template v-else>
+        <h2 class="storyline__title">{{ questLabel() }}</h2>
+        <button
+          class="storyline__edit-btn"
+          aria-label="Rename quest"
+          title="Rename"
+          @click="startEdit"
+        >
+          ✎
+        </button>
+      </template>
+    </div>
 
     <p v-if="loading" class="storyline__msg">Loading…</p>
     <p v-else-if="photos.length === 0" class="storyline__msg">No photos.</p>
@@ -85,15 +144,52 @@ watch(
   border-left: 1px solid #2a2a4e;
 }
 
+.storyline__header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.75rem 0.45rem;
+  border-bottom: 1px solid #2a2a4e;
+  flex-shrink: 0;
+  min-height: 2.1rem;
+}
+
 .storyline__title {
   font-size: 0.8rem;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #aaa;
-  padding: 0.75rem 1rem 0.5rem;
-  border-bottom: 1px solid #2a2a4e;
+  letter-spacing: 0.05em;
+  color: #ccc;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.storyline__edit-btn {
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0 2px;
+  line-height: 1;
   flex-shrink: 0;
+}
+
+.storyline__edit-btn:hover {
+  color: #aaa;
+}
+
+.storyline__name-input {
+  flex: 1;
+  background: #1e1e38;
+  border: 1px solid #4a4a8e;
+  border-radius: 3px;
+  color: white;
+  font-size: 0.8rem;
+  padding: 2px 6px;
+  outline: none;
+  min-width: 0;
 }
 
 .storyline__msg {

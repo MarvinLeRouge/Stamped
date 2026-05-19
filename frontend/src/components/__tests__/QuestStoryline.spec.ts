@@ -7,7 +7,7 @@ import { useQuestsStore } from '@/stores/quests'
 import { useLightboxStore } from '@/stores/lightbox'
 import api from '@/api'
 
-vi.mock('@/api', () => ({ default: { get: vi.fn() } }))
+vi.mock('@/api', () => ({ default: { get: vi.fn(), patch: vi.fn() } }))
 
 const PHOTOS = [
   { id: 1, captured_at: '2024-06-01T08:10:00Z', thumb_status: 'done', is_orphan: false },
@@ -101,5 +101,91 @@ describe('QuestStoryline', () => {
     store.selectedQuestId = 2
     await flushPromises()
     expect(wrapper.findAll('.storyline__item')).toHaveLength(1)
+  })
+})
+
+// ── Rename ─────────────────────────────────────────────────────────────────
+
+describe('QuestStoryline — rename', () => {
+  const QUEST = {
+    id: 1,
+    name: null,
+    auto_name: 'Quest 2024-06-01',
+    started_at: null,
+    ended_at: null,
+    photo_count: 0,
+    has_gpx: false,
+    bbox_lat_min: null,
+    bbox_lat_max: null,
+    bbox_lon_min: null,
+    bbox_lon_max: null,
+  }
+
+  let wrapper: ReturnType<typeof mount>
+  let store: ReturnType<typeof useQuestsStore>
+
+  beforeEach(async () => {
+    setActivePinia(createPinia())
+    store = useQuestsStore()
+    store.quests = [{ ...QUEST }]
+    vi.mocked(api.get).mockResolvedValue({ data: [] })
+    vi.mocked(api.patch).mockResolvedValue({ data: { ...QUEST, name: 'Mon aventure' } })
+    wrapper = mount(QuestStoryline, { attachTo: document.body })
+    store.selectedQuestId = 1
+    await flushPromises()
+  })
+
+  afterEach(() => wrapper.unmount())
+
+  it('shows auto_name in the header when name is null', () => {
+    expect(wrapper.find('.storyline__title').text()).toBe('Quest 2024-06-01')
+  })
+
+  it('shows custom name when set', async () => {
+    store.quests = [{ ...QUEST, name: 'Mon aventure' }]
+    await flushPromises()
+    expect(wrapper.find('.storyline__title').text()).toBe('Mon aventure')
+  })
+
+  it('clicking the edit button shows the input', async () => {
+    await wrapper.find('.storyline__edit-btn').trigger('click')
+    expect(wrapper.find('.storyline__name-input').exists()).toBe(true)
+    expect(wrapper.find('.storyline__title').exists()).toBe(false)
+  })
+
+  it('input is pre-filled with current name', async () => {
+    store.quests = [{ ...QUEST, name: 'Existing' }]
+    await flushPromises()
+    await wrapper.find('.storyline__edit-btn').trigger('click')
+    expect((wrapper.find('.storyline__name-input').element as HTMLInputElement).value).toBe(
+      'Existing',
+    )
+  })
+
+  it('Enter key commits the rename', async () => {
+    vi.spyOn(store, 'renameQuest').mockResolvedValue()
+    await wrapper.find('.storyline__edit-btn').trigger('click')
+    const input = wrapper.find('.storyline__name-input')
+    await input.setValue('Mon aventure')
+    await input.trigger('keydown', { key: 'Enter' })
+    expect(store.renameQuest).toHaveBeenCalledWith(1, 'Mon aventure')
+    expect(wrapper.find('.storyline__name-input').exists()).toBe(false)
+  })
+
+  it('Escape key cancels without saving', async () => {
+    vi.spyOn(store, 'renameQuest').mockResolvedValue()
+    await wrapper.find('.storyline__edit-btn').trigger('click')
+    await wrapper.find('.storyline__name-input').trigger('keydown', { key: 'Escape' })
+    expect(store.renameQuest).not.toHaveBeenCalled()
+    expect(wrapper.find('.storyline__name-input').exists()).toBe(false)
+  })
+
+  it('blank input commits null to clear the name', async () => {
+    vi.spyOn(store, 'renameQuest').mockResolvedValue()
+    await wrapper.find('.storyline__edit-btn').trigger('click')
+    const input = wrapper.find('.storyline__name-input')
+    await input.setValue('   ')
+    await input.trigger('keydown', { key: 'Enter' })
+    expect(store.renameQuest).toHaveBeenCalledWith(1, null)
   })
 })

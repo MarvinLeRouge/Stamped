@@ -254,3 +254,68 @@ def test_get_quest_photos_no_photos_returns_empty(tmp_path: Path) -> None:
         assert r.json() == []
     finally:
         app.dependency_overrides.clear()
+
+
+# ── PATCH /api/quests/{id} ────────────────────────────────────────────────────
+
+
+def test_patch_quest_unknown_returns_404(tmp_path: Path) -> None:
+    init_db()
+    r = TestClient(app).patch("/api/quests/999", json={"name": "X"})
+    assert r.status_code == 404
+
+
+def test_patch_quest_sets_name(tmp_path: Path) -> None:
+    c = _seeded_client(tmp_path)
+    try:
+        quest_id = c.get("/api/quests").json()[0]["id"]
+        r = c.patch(f"/api/quests/{quest_id}", json={"name": "Mon aventure"})
+        assert r.status_code == 200
+        assert r.json()["name"] == "Mon aventure"
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_patch_quest_clears_name_with_null(tmp_path: Path) -> None:
+    c = _seeded_client(tmp_path)
+    try:
+        quest_id = c.get("/api/quests").json()[0]["id"]
+        c.patch(f"/api/quests/{quest_id}", json={"name": "Mon aventure"})
+        r = c.patch(f"/api/quests/{quest_id}", json={"name": None})
+        assert r.status_code == 200
+        assert r.json()["name"] is None
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_patch_quest_strips_whitespace_to_null(tmp_path: Path) -> None:
+    c = _seeded_client(tmp_path)
+    try:
+        quest_id = c.get("/api/quests").json()[0]["id"]
+        r = c.patch(f"/api/quests/{quest_id}", json={"name": "   "})
+        assert r.status_code == 200
+        assert r.json()["name"] is None
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_patch_quest_returns_full_quest_shape(tmp_path: Path) -> None:
+    c = _seeded_client(tmp_path)
+    try:
+        quest_id = c.get("/api/quests").json()[0]["id"]
+        quest = c.patch(f"/api/quests/{quest_id}", json={"name": "Test"}).json()
+        assert set(quest.keys()) == {
+            "id",
+            "name",
+            "auto_name",
+            "started_at",
+            "ended_at",
+            "photo_count",
+            "has_gpx",
+            "bbox_lat_min",
+            "bbox_lat_max",
+            "bbox_lon_min",
+            "bbox_lon_max",
+        }
+    finally:
+        app.dependency_overrides.clear()

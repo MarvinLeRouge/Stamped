@@ -82,6 +82,38 @@ def get_quest_photos(
     ]
 
 
+class QuestPatch(BaseModel):
+    name: str | None
+
+
+@router.patch("/quests/{quest_id}", response_model=QuestResponse)
+def patch_quest(
+    quest_id: int,
+    body: QuestPatch,
+    conn: Annotated[sqlite3.Connection, Depends(get_db)],
+) -> QuestResponse:
+    quest = conn.execute("SELECT id FROM quests WHERE id = ?", (quest_id,)).fetchone()
+    if quest is None:
+        raise HTTPException(status_code=404, detail="Quest not found")
+    name = body.name.strip() if body.name and body.name.strip() else None
+    conn.execute("UPDATE quests SET name = ? WHERE id = ?", (name, quest_id))
+    conn.commit()
+    row = conn.execute("SELECT * FROM quests WHERE id = ?", (quest_id,)).fetchone()
+    return QuestResponse(
+        id=row["id"],
+        name=row["name"],
+        auto_name=row["auto_name"],
+        started_at=row["started_at"],
+        ended_at=row["ended_at"],
+        photo_count=row["photo_count"],
+        has_gpx=bool(row["has_gpx"]),
+        bbox_lat_min=row["bbox_lat_min"],
+        bbox_lat_max=row["bbox_lat_max"],
+        bbox_lon_min=row["bbox_lon_min"],
+        bbox_lon_max=row["bbox_lon_max"],
+    )
+
+
 @router.get("/quests", response_model=list[QuestResponse])
 def get_quests(conn: Annotated[sqlite3.Connection, Depends(get_db)]) -> list[QuestResponse]:
     rows = conn.execute("SELECT * FROM quests ORDER BY started_at").fetchall()
