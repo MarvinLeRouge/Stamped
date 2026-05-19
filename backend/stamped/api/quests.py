@@ -1,7 +1,7 @@
 import sqlite3
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from stamped.core.db import get_db
@@ -21,6 +21,23 @@ class QuestResponse(BaseModel):
     bbox_lat_max: float | None
     bbox_lon_min: float | None
     bbox_lon_max: float | None
+
+
+@router.get("/quests/{quest_id}/trackpoints")
+def get_quest_trackpoints(
+    quest_id: int,
+    conn: Annotated[sqlite3.Connection, Depends(get_db)],
+) -> list[list[float]]:
+    quest = conn.execute("SELECT id FROM quests WHERE id = ?", (quest_id,)).fetchone()
+    if quest is None:
+        raise HTTPException(status_code=404, detail="Quest not found")
+    rows = conn.execute(
+        "SELECT t.lat, t.lon FROM gpx_trackpoints t"
+        " JOIN gpx_files f ON f.id = t.gpx_file_id"
+        " WHERE f.quest_id = ? ORDER BY t.recorded_at",
+        (quest_id,),
+    ).fetchall()
+    return [[r["lat"], r["lon"]] for r in rows]
 
 
 @router.get("/quests", response_model=list[QuestResponse])

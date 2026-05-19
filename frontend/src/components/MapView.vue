@@ -8,6 +8,7 @@ import 'leaflet.markercluster'
 import { LMap, LTileLayer } from '@vue-leaflet/vue-leaflet'
 import { ref, watch } from 'vue'
 
+import api from '@/api'
 import { usePhotosStore } from '@/stores/photos'
 import { useQuestsStore } from '@/stores/quests'
 import { useLightboxStore } from '@/stores/lightbox'
@@ -24,6 +25,7 @@ const lightboxStore = useLightboxStore()
 
 const mapRef = ref<{ leafletObject: L.Map } | null>(null)
 let clusterGroup: L.MarkerClusterGroup | null = null
+let gpxPolyline: L.Polyline | null = null
 
 function formatDate(capturedAt: string | null): string {
   if (!capturedAt) return ''
@@ -98,6 +100,34 @@ async function onMapReady(): Promise<void> {
 
   await Promise.all([photosStore.fetchPhotos(), questsStore.fetchQuests()])
   refreshMarkers()
+  await refreshGpxTrace(questsStore.selectedQuestId)
+}
+
+async function refreshGpxTrace(questId: number | null): Promise<void> {
+  const map = mapRef.value?.leafletObject
+  /* c8 ignore next */
+  if (!map) return
+
+  if (gpxPolyline) {
+    map.removeLayer(gpxPolyline)
+    gpxPolyline = null
+  }
+
+  if (questId === null) return
+
+  try {
+    const { data } = await api.get<number[][]>(`/quests/${questId}/trackpoints`)
+    if (data.length > 1) {
+      gpxPolyline = L.polyline(data as [number, number][], {
+        color: '#e85d04',
+        weight: 3,
+        opacity: 0.8,
+      })
+      map.addLayer(gpxPolyline)
+    }
+  } catch {
+    // no GPX for this quest — silent
+  }
 }
 
 async function loadVisiblePhotos(): Promise<void> {
@@ -121,6 +151,7 @@ async function loadVisiblePhotos(): Promise<void> {
 watch(
   () => questsStore.selectedQuestId,
   async (id) => {
+    await refreshGpxTrace(id)
     const map = mapRef.value?.leafletObject
     if (id !== null && map) {
       const quest = questsStore.quests.find((q) => q.id === id)
