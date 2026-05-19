@@ -84,6 +84,75 @@ def get_quest_photos(
     ]
 
 
+class QuestPlaceBody(BaseModel):
+    lat: float | None = None
+    lon: float | None = None
+
+
+class QuestPlaceResponse(BaseModel):
+    placed: int
+    lat: float
+    lon: float
+
+
+def _median_point(conn: sqlite3.Connection, quest_id: int) -> tuple[float, float] | None:
+    """Return the chronological median GPS point for a quest (trackpoints + geolocated photos)."""
+    points: list[tuple[str, float, float]] = []
+
+    rows = conn.execute(
+        "SELECT t.recorded_at, t.lat, t.lon FROM gpx_trackpoints t"
+        " JOIN gpx_files f ON f.id = t.gpx_file_id"
+        " WHERE f.quest_id = ? ORDER BY t.recorded_at",
+        (quest_id,),
+    ).fetchall()
+    for r in rows:
+        points.append((r["recorded_at"], r["lat"], r["lon"]))
+
+    rows = conn.execute(
+        "SELECT captured_at, lat, lon FROM photos"
+        " WHERE quest_id = ? AND lat IS NOT NULL ORDER BY captured_at",
+        (quest_id,),
+    ).fetchall()
+    for r in rows:
+        points.append((r["captured_at"], r["lat"], r["lon"]))
+
+    if not points:
+        return None
+
+    points.sort(key=lambda p: p[0])
+    _, lat, lon = points[len(points) // 2]
+    return lat, lon
+
+
+@router.post("/quests/{quest_id}/place", response_model=QuestPlaceResponse)
+def place_quest_orphans(
+    quest_id: int,
+    body: QuestPlaceBody,
+    conn: Annotated[sqlite3.Connection, Depends(get_db)],
+) -> QuestPlaceResponse:
+    quest = conn.execute("SELECT id FROM quests WHERE id = ?", (quest_id,)).fetchone()
+    if quest is None:
+        raise HTTPException(status_code=404, detail="Quest not found")
+
+    if body.lat is not None and body.lon is not None:
+        lat, lon = body.lat, body.lon
+    else:
+        point = _median_point(conn, quest_id)
+        if point is None:
+            raise HTTPException(
+                status_code=422,
+                detail="No GPS reference points for this quest — provide lat/lon explicitly",
+            )
+        lat, lon = point
+
+    result = conn.execute(
+        "UPDATE photos SET lat = ?, lon = ?, is_orphan = 0 WHERE quest_id = ? AND is_orphan = 1",
+        (lat, lon, quest_id),
+    )
+    conn.commit()
+    return QuestPlaceResponse(placed=result.rowcount, lat=lat, lon=lon)
+
+
 class QuestPatch(BaseModel):
     name: str | None
 
