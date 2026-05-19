@@ -1,12 +1,13 @@
 import sqlite3
 from collections.abc import Generator
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
 
 from stamped.api.main import app
+from stamped.api.search import _fetch_nominatim
 from stamped.core.config import settings
 from stamped.core.db import get_connection, get_db, init_db
 
@@ -83,6 +84,54 @@ def test_geocode_returns_empty_on_no_results(db_conn: sqlite3.Connection) -> Non
         assert r.json() == []
     finally:
         app.dependency_overrides.clear()
+
+
+def _make_loc(display_name: str, lat: float, lon: float, bb: list[str] | None = None) -> MagicMock:
+    loc = MagicMock()
+    loc.address = display_name
+    loc.latitude = lat
+    loc.longitude = lon
+    loc.raw = {"boundingbox": bb} if bb else {}
+    return loc
+
+
+def test_fetch_nominatim_returns_results() -> None:
+    loc = _make_loc("Chamonix, France", 45.923, 6.869, ["44.0", "46.0", "5.0", "7.0"])
+    with patch("geopy.geocoders.Nominatim") as MockNom:
+        MockNom.return_value.geocode.return_value = [loc]
+        results = _fetch_nominatim("Chamonix")
+    assert len(results) == 1
+    assert results[0].display_name == "Chamonix, France"
+    assert results[0].bbox_lat_min == pytest.approx(44.0)
+
+
+def test_fetch_nominatim_returns_empty_on_no_results() -> None:
+    with patch("geopy.geocoders.Nominatim") as MockNom:
+        MockNom.return_value.geocode.return_value = []
+        results = _fetch_nominatim("xyzxyz")
+    assert results == []
+
+
+def test_fetch_nominatim_returns_empty_on_none_results() -> None:
+    with patch("geopy.geocoders.Nominatim") as MockNom:
+        MockNom.return_value.geocode.return_value = None
+        results = _fetch_nominatim("xyzxyz")
+    assert results == []
+
+
+def test_fetch_nominatim_handles_exception() -> None:
+    with patch("geopy.geocoders.Nominatim") as MockNom:
+        MockNom.return_value.geocode.side_effect = Exception("network error")
+        results = _fetch_nominatim("Chamonix")
+    assert results == []
+
+
+def test_fetch_nominatim_loc_without_bbox() -> None:
+    loc = _make_loc("Chamonix, France", 45.923, 6.869, None)
+    with patch("geopy.geocoders.Nominatim") as MockNom:
+        MockNom.return_value.geocode.return_value = [loc]
+        results = _fetch_nominatim("Chamonix")
+    assert results[0].bbox_lat_min is None
 
 
 def test_geocode_uses_cache(db_conn: sqlite3.Connection) -> None:

@@ -280,3 +280,28 @@ def test_interpolate_utc_offset_negative(db_conn: sqlite3.Connection) -> None:
     assert result.interpolated == 1
     row = db_conn.execute("SELECT lat, lon FROM photos WHERE id=?", (pid,)).fetchone()
     assert abs(row["lat"] - 44.0) < 0.001
+
+
+def test_interpolate_cross_file_trackpoints_stays_orphan(db_conn: sqlite3.Connection) -> None:
+    # Two separate GPX files: last trackpoint of file 1, first trackpoint of file 2
+    # surround the photo timestamp. The photo should stay orphan — interpolating
+    # across two different activities would produce a meaningless position.
+    gpx1 = db_conn.execute(
+        "INSERT INTO gpx_files (file_path, file_hash, point_count) VALUES ('a.gpx','ha',1)"
+    ).lastrowid
+    gpx2 = db_conn.execute(
+        "INSERT INTO gpx_files (file_path, file_hash, point_count) VALUES ('b.gpx','hb',1)"
+    ).lastrowid
+    db_conn.execute(
+        "INSERT INTO gpx_trackpoints (gpx_file_id, recorded_at, lat, lon) VALUES (?,?,?,?)",
+        (gpx1, "2024-07-14T07:00:00Z", 45.0, 6.0),
+    )
+    db_conn.execute(
+        "INSERT INTO gpx_trackpoints (gpx_file_id, recorded_at, lat, lon) VALUES (?,?,?,?)",
+        (gpx2, "2024-07-14T10:00:00Z", 46.0, 7.0),
+    )
+    db_conn.commit()
+    _insert_orphan_photo(db_conn, "2024-07-14T08:30:00Z")
+    result = interpolate_gps_from_trackpoints(db_conn)
+    assert result.still_orphan == 1
+    assert result.interpolated == 0

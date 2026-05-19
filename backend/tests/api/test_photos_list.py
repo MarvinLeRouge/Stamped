@@ -94,6 +94,19 @@ def test_list_photos_date_filter(db_conn: sqlite3.Connection) -> None:
         app.dependency_overrides.clear()
 
 
+def test_list_photos_date_to_filter(db_conn: sqlite3.Connection) -> None:
+    _insert_photo(db_conn, captured_at="2024-01-01T00:00:00Z", idx=0)
+    _insert_photo(db_conn, captured_at="2024-12-31T00:00:00Z", idx=1)
+    app.dependency_overrides[get_db] = _override(db_conn)
+    try:
+        r = TestClient(app).get("/api/photos?date_to=2024-06-01T00:00:00Z")
+        data = r.json()
+        assert len(data) == 1
+        assert "01-01" in data[0]["captured_at"]
+    finally:
+        app.dependency_overrides.clear()
+
+
 def test_list_photos_quest_filter(db_conn: sqlite3.Connection) -> None:
     conn = db_conn
     conn.execute(
