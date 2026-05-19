@@ -17,6 +17,7 @@ from stamped.services.elevation_service import enrich_elevation
 from stamped.services.gpx_service import import_gpx_directory
 from stamped.services.import_service import import_directory, interpolate_gps_from_trackpoints
 from stamped.services.quest_service import cluster_quests
+from stamped.services.thumb_service import process_pending_thumbs
 
 logger = logging.getLogger(__name__)
 
@@ -123,6 +124,15 @@ def _run_pipeline(
             publish("elevation", 0.85)
             enrich_elevation(conn)
 
+            publish("thumbnails", 0.9)
+            thumbs_done = thumbs_failed = 0
+            while True:
+                result = process_pending_thumbs(conn)
+                thumbs_done += result.done
+                thumbs_failed += result.failed
+                if result.done == 0:
+                    break
+
             photos_total = conn.execute("SELECT COUNT(*) FROM photos").fetchone()[0]
             orphans = conn.execute("SELECT COUNT(*) FROM photos WHERE is_orphan = 1").fetchone()[0]
             gpx_count = conn.execute("SELECT COUNT(*) FROM gpx_files").fetchone()[0]
@@ -135,6 +145,8 @@ def _run_pipeline(
                     "orphans_count": orphans,
                     "gpx_files": gpx_count,
                     "quests": quests_count,
+                    "thumbs_done": thumbs_done,
+                    "thumbs_pending": thumbs_failed,
                     "last_index_at": _now(),
                 },
             )
