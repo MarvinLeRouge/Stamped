@@ -66,26 +66,17 @@ def cluster_quests(conn: sqlite3.Connection) -> ClusterResult:
         started_at = group[0]["captured_at"]
         ended_at = group[-1]["captured_at"]
 
-        lats = [r["lat"] for r in group if r["lat"] is not None]
-        lons = [r["lon"] for r in group if r["lon"] is not None]
+        # EXIF GPS coordinates available at clustering time
+        exif_lats = [r["lat"] for r in group if r["lat"] is not None]
+        exif_lons = [r["lon"] for r in group if r["lon"] is not None]
 
         cursor = conn.execute(
             """
             INSERT INTO quests
-                (auto_name, started_at, ended_at, photo_count,
-                 bbox_lat_min, bbox_lat_max, bbox_lon_min, bbox_lon_max)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                (auto_name, started_at, ended_at, photo_count)
+            VALUES (?, ?, ?, ?)
             """,
-            (
-                _auto_name(started_at),
-                started_at,
-                ended_at,
-                len(group),
-                min(lats) if lats else None,
-                max(lats) if lats else None,
-                min(lons) if lons else None,
-                max(lons) if lons else None,
-            ),
+            (_auto_name(started_at), started_at, ended_at, len(group)),
         )
         quest_id = cursor.lastrowid
         quests_created += 1
@@ -105,12 +96,50 @@ def cluster_quests(conn: sqlite3.Connection) -> ClusterResult:
             (ended_utc, started_utc),
         ).fetchall()
 
+        # Build bbox from GPX trackpoints + EXIF GPS photos
+        gpx_bbox = (
+            conn.execute(
+                "SELECT MIN(t.lat) AS lat_min, MAX(t.lat) AS lat_max,"
+                "       MIN(t.lon) AS lon_min, MAX(t.lon) AS lon_max"
+                " FROM gpx_trackpoints t"
+                " JOIN gpx_files f ON f.id = t.gpx_file_id"
+                " WHERE f.id IN ({})".format(",".join("?" * len(gpx_rows)) if gpx_rows else "NULL"),
+                [r["id"] for r in gpx_rows] if gpx_rows else [],
+            ).fetchone()
+            if gpx_rows
+            else None
+        )
+
+        lat_min_vals = exif_lats + (
+            [gpx_bbox["lat_min"]] if gpx_bbox and gpx_bbox["lat_min"] is not None else []
+        )
+        lat_max_vals = exif_lats + (
+            [gpx_bbox["lat_max"]] if gpx_bbox and gpx_bbox["lat_max"] is not None else []
+        )
+        lon_min_vals = exif_lons + (
+            [gpx_bbox["lon_min"]] if gpx_bbox and gpx_bbox["lon_min"] is not None else []
+        )
+        lon_max_vals = exif_lons + (
+            [gpx_bbox["lon_max"]] if gpx_bbox and gpx_bbox["lon_max"] is not None else []
+        )
+
+        conn.execute(
+            "UPDATE quests SET has_gpx=?, bbox_lat_min=?, bbox_lat_max=?, bbox_lon_min=?, bbox_lon_max=? WHERE id=?",
+            (
+                1 if gpx_rows else 0,
+                min(lat_min_vals) if lat_min_vals else None,
+                max(lat_max_vals) if lat_max_vals else None,
+                min(lon_min_vals) if lon_min_vals else None,
+                max(lon_max_vals) if lon_max_vals else None,
+                quest_id,
+            ),
+        )
+
         if gpx_rows:
             conn.executemany(
                 "UPDATE gpx_files SET quest_id = ? WHERE id = ?",
                 [(quest_id, r["id"]) for r in gpx_rows],
             )
-            conn.execute("UPDATE quests SET has_gpx = 1 WHERE id = ?", (quest_id,))
             gpx_assigned += len(gpx_rows)
 
     conn.commit()

@@ -1,0 +1,65 @@
+import { createPinia, setActivePinia } from 'pinia'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import api from '@/api'
+import { useQuestsStore } from '@/stores/quests'
+
+vi.mock('@/api', () => ({ default: { get: vi.fn() } }))
+const mockApi = vi.mocked(api)
+
+const mockQuests = [
+  {
+    id: 1,
+    name: null,
+    auto_name: 'Quest 2024-07-14',
+    started_at: '2024-07-14T08:00:00Z',
+    ended_at: '2024-07-14T12:00:00Z',
+    photo_count: 3,
+    has_gpx: false,
+    bbox_lat_min: 45.0,
+    bbox_lat_max: 46.0,
+    bbox_lon_min: 6.0,
+    bbox_lon_max: 7.0,
+  },
+]
+
+describe('useQuestsStore', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    vi.resetAllMocks()
+  })
+
+  it('initialises with empty quests and no selection', () => {
+    const store = useQuestsStore()
+    expect(store.quests).toEqual([])
+    expect(store.selectedQuestId).toBeNull()
+  })
+
+  it('fetchQuests populates quests on success', async () => {
+    mockApi.get.mockResolvedValue({ data: mockQuests })
+    const store = useQuestsStore()
+    await store.fetchQuests()
+    expect(store.quests).toEqual(mockQuests)
+    expect(store.error).toBeNull()
+  })
+
+  it('fetchQuests sets error on failure', async () => {
+    mockApi.get.mockRejectedValue(new Error('network'))
+    const store = useQuestsStore()
+    await store.fetchQuests()
+    expect(store.error).toBe('Failed to load quests')
+  })
+
+  it('selectQuest sets selectedQuestId', () => {
+    const store = useQuestsStore()
+    store.selectQuest(1)
+    expect(store.selectedQuestId).toBe(1)
+  })
+
+  it('selectQuest with null clears selection', () => {
+    const store = useQuestsStore()
+    store.selectQuest(1)
+    store.selectQuest(null)
+    expect(store.selectedQuestId).toBeNull()
+  })
+})
