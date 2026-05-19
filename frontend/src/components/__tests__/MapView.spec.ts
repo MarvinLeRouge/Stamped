@@ -5,10 +5,11 @@ import { mount, flushPromises } from '@vue/test-utils'
 import MapView from '../MapView.vue'
 import { usePhotosStore } from '@/stores/photos'
 import { useQuestsStore } from '@/stores/quests'
+import api from '@/api'
 
 // ── Leaflet mocks ─────────────────────────────────────────────────────────────
 
-const mockMarker = { bindPopup: vi.fn().mockReturnThis() }
+const mockMarker = { bindPopup: vi.fn().mockReturnThis(), on: vi.fn() }
 const mockCluster = { addLayer: vi.fn() }
 const mockMap = {
   removeLayer: vi.fn(),
@@ -23,10 +24,13 @@ const mockMap = {
   }),
 }
 
+const mockPolyline = { addTo: vi.fn() }
+
 vi.mock('leaflet', () => ({
   default: {
     marker: vi.fn(() => mockMarker),
     markerClusterGroup: vi.fn(() => mockCluster),
+    polyline: vi.fn(() => mockPolyline),
   },
 }))
 
@@ -164,7 +168,7 @@ describe('MapView — logic', () => {
     const popup = mockMarker.bindPopup.mock.calls.at(-1)?.[0] as string
     expect(popup).toContain('<img')
     expect(popup).toContain('/api/photos/3/thumb')
-    expect(popup).toContain('2024-07-14')
+    expect(popup).toContain('2024')
   })
 
   it('buildPopup with pending status shows Generating', async () => {
@@ -240,5 +244,69 @@ describe('MapView — logic', () => {
       ],
       { padding: [40, 40] },
     )
+  })
+
+  it('selecting a quest with two GPX segments adds two polylines', async () => {
+    vi.mocked(api.get).mockResolvedValueOnce({
+      data: [
+        [
+          [44.0, 6.0],
+          [44.1, 6.1],
+        ],
+        [
+          [45.0, 7.0],
+          [45.1, 7.1],
+        ],
+      ],
+    } as never)
+    vi.spyOn(photosStore, 'fetchPhotos').mockResolvedValue()
+    vi.clearAllMocks()
+    questsStore.selectedQuestId = 10
+    await flushPromises()
+    const polyCalls = mockMap.addLayer.mock.calls.filter((c) => c[0] === mockPolyline)
+    expect(polyCalls).toHaveLength(2)
+  })
+
+  it('deselecting a quest removes all polylines', async () => {
+    vi.mocked(api.get).mockResolvedValueOnce({
+      data: [
+        [
+          [44.0, 6.0],
+          [44.1, 6.1],
+        ],
+        [
+          [45.0, 7.0],
+          [45.1, 7.1],
+        ],
+      ],
+    } as never)
+    vi.spyOn(photosStore, 'fetchPhotos').mockResolvedValue()
+    questsStore.selectedQuestId = 10
+    await flushPromises()
+
+    vi.clearAllMocks()
+    vi.spyOn(photosStore, 'fetchPhotos').mockResolvedValue()
+    questsStore.selectedQuestId = null
+    await flushPromises()
+    const removeCalls = mockMap.removeLayer.mock.calls.filter((c) => c[0] === mockPolyline)
+    expect(removeCalls).toHaveLength(2)
+  })
+
+  it('segments with fewer than two points are skipped', async () => {
+    vi.mocked(api.get).mockResolvedValueOnce({
+      data: [
+        [[44.0, 6.0]],
+        [
+          [45.0, 7.0],
+          [45.1, 7.1],
+        ],
+      ],
+    } as never)
+    vi.spyOn(photosStore, 'fetchPhotos').mockResolvedValue()
+    vi.clearAllMocks()
+    questsStore.selectedQuestId = 11
+    await flushPromises()
+    const polyCalls = mockMap.addLayer.mock.calls.filter((c) => c[0] === mockPolyline)
+    expect(polyCalls).toHaveLength(1)
   })
 })

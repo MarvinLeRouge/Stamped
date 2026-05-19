@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import MapView from '@/components/MapView.vue'
+import PhotoLightbox from '@/components/PhotoLightbox.vue'
 import QuestList from '@/components/QuestList.vue'
 import StatusDashboard from '@/components/StatusDashboard.vue'
 </script>
@@ -16,6 +17,7 @@ import StatusDashboard from '@/components/StatusDashboard.vue'
         <MapView />
       </main>
     </div>
+    <PhotoLightbox />
   </div>
 </template>
 
