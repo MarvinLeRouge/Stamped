@@ -25,7 +25,7 @@ const lightboxStore = useLightboxStore()
 
 const mapRef = ref<{ leafletObject: L.Map } | null>(null)
 let clusterGroup: L.MarkerClusterGroup | null = null
-let gpxPolyline: L.Polyline | null = null
+let gpxPolylines: L.Polyline[] = []
 
 function formatDate(capturedAt: string | null): string {
   if (!capturedAt) return ''
@@ -108,22 +108,24 @@ async function refreshGpxTrace(questId: number | null): Promise<void> {
   /* c8 ignore next */
   if (!map) return
 
-  if (gpxPolyline) {
-    map.removeLayer(gpxPolyline)
-    gpxPolyline = null
+  for (const line of gpxPolylines) {
+    map.removeLayer(line)
   }
+  gpxPolylines = []
 
   if (questId === null) return
 
   try {
-    const { data } = await api.get<number[][]>(`/quests/${questId}/trackpoints`)
-    if (data.length > 1) {
-      gpxPolyline = L.polyline(data as [number, number][], {
+    const { data } = await api.get<number[][][]>(`/quests/${questId}/trackpoints`)
+    for (const segment of data) {
+      if (segment.length < 2) continue
+      const line = L.polyline(segment as [number, number][], {
         color: '#e85d04',
         weight: 3,
         opacity: 0.8,
       })
-      map.addLayer(gpxPolyline)
+      map.addLayer(line)
+      gpxPolylines.push(line)
     }
   } catch {
     // no GPX for this quest — silent
