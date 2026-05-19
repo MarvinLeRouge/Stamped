@@ -62,7 +62,7 @@ describe('usePhotosStore', () => {
     mockApi.get.mockResolvedValue({ data: [] })
     const store = usePhotosStore()
     await store.fetchPhotos({ lat_min: 44.0, quest_id: undefined })
-    const call = mockApi.get.mock.calls[0][1] as { params: Record<string, unknown> }
-    expect(call.params).not.toHaveProperty('quest_id')
+    const call = mockApi.get.mock.calls[0]?.[1] as { params: Record<string, unknown> } | undefined
+    expect(call?.params).not.toHaveProperty('quest_id')
   })
 })
