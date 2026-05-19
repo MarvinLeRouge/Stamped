@@ -86,7 +86,7 @@ def interpolate_gps_from_trackpoints(
     Photos outside the trackpoint time range remain is_orphan=1.
     """
     trackpoints = conn.execute(
-        "SELECT recorded_at, lat, lon FROM gpx_trackpoints ORDER BY recorded_at"
+        "SELECT gpx_file_id, recorded_at, lat, lon FROM gpx_trackpoints ORDER BY recorded_at"
     ).fetchall()
 
     if not trackpoints:
@@ -111,6 +111,10 @@ def interpolate_gps_from_trackpoints(
             continue
 
         a, b = trackpoints[i - 1], trackpoints[i]
+
+        if a["gpx_file_id"] != b["gpx_file_id"]:
+            still_orphan += 1
+            continue
         ta = datetime.strptime(a["recorded_at"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
         tb = datetime.strptime(b["recorded_at"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
         tt = ts_utc
