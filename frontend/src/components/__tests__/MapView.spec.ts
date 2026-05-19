@@ -14,6 +14,7 @@ const mockMap = {
   removeLayer: vi.fn(),
   addLayer: vi.fn(),
   on: vi.fn(),
+  fitBounds: vi.fn(),
   getBounds: vi.fn().mockReturnValue({
     getSouth: () => 44.0,
     getNorth: () => 46.0,
@@ -206,11 +207,38 @@ describe('MapView — logic', () => {
     expect(photosStore.fetchPhotos).toHaveBeenCalledWith(expect.objectContaining({ quest_id: 1 }))
   })
 
-  it('watch on selectedQuestId triggers loadVisiblePhotos', async () => {
+  it('watch without quest bbox falls back to loadVisiblePhotos', async () => {
     vi.clearAllMocks()
     vi.spyOn(photosStore, 'fetchPhotos').mockResolvedValue()
-    questsStore.selectedQuestId = 2
+    questsStore.selectedQuestId = 99 // quest not in store → no bbox
     await flushPromises()
     expect(photosStore.fetchPhotos).toHaveBeenCalled()
+  })
+
+  it('watch with quest bbox calls fitBounds', async () => {
+    questsStore.quests = [
+      {
+        id: 5,
+        name: null,
+        auto_name: 'Quest',
+        started_at: null,
+        ended_at: null,
+        photo_count: 3,
+        has_gpx: false,
+        bbox_lat_min: 44.0,
+        bbox_lat_max: 46.0,
+        bbox_lon_min: 5.0,
+        bbox_lon_max: 7.0,
+      },
+    ]
+    questsStore.selectedQuestId = 5
+    await flushPromises()
+    expect(mockMap.fitBounds).toHaveBeenCalledWith(
+      [
+        [44.0, 5.0],
+        [46.0, 7.0],
+      ],
+      { padding: [40, 40] },
+    )
   })
 })

@@ -86,7 +86,32 @@ async function loadVisiblePhotos(): Promise<void> {
   refreshMarkers()
 }
 
-watch(() => questsStore.selectedQuestId, loadVisiblePhotos)
+watch(
+  () => questsStore.selectedQuestId,
+  async (id) => {
+    const map = mapRef.value?.leafletObject
+    if (id !== null && map) {
+      const quest = questsStore.quests.find((q) => q.id === id)
+      if (
+        quest &&
+        quest.bbox_lat_min !== null &&
+        quest.bbox_lat_max !== null &&
+        quest.bbox_lon_min !== null &&
+        quest.bbox_lon_max !== null
+      ) {
+        map.fitBounds(
+          [
+            [quest.bbox_lat_min, quest.bbox_lon_min],
+            [quest.bbox_lat_max, quest.bbox_lon_max],
+          ],
+          { padding: [40, 40] },
+        )
+        return
+      }
+    }
+    await loadVisiblePhotos()
+  },
+)
 </script>
 
 <template>
