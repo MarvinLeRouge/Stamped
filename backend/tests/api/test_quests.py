@@ -177,3 +177,80 @@ def test_get_trackpoints_no_gpx_returns_empty(tmp_path: Path) -> None:
         assert r.json() == []
     finally:
         app.dependency_overrides.clear()
+
+
+# ── GET /api/quests/{id}/photos ───────────────────────────────────────────────
+
+
+def _photos_client(tmp_path: Path) -> tuple[TestClient, int]:
+    """Return a client with one quest and two photos."""
+    init_db()
+
+    with get_connection() as conn:
+        conn.execute(
+            "INSERT INTO quests (auto_name, started_at, ended_at, photo_count, has_gpx)"
+            " VALUES ('Q', '2024-06-01T08:00:00Z', '2024-06-01T10:00:00Z', 2, 0)"
+        )
+        quest_id: int = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+        conn.executemany(
+            "INSERT INTO photos"
+            " (file_path, file_hash, captured_at, thumb_status, quest_id, is_orphan)"
+            " VALUES (?, ?, ?, 'done', ?, 0)",
+            [
+                ("/img/a.jpg", "hash-a", "2024-06-01T08:10:00Z", quest_id),
+                ("/img/b.jpg", "hash-b", "2024-06-01T09:00:00Z", quest_id),
+            ],
+        )
+        conn.commit()
+
+    def _override_db() -> Generator[sqlite3.Connection, None, None]:
+        with get_connection() as conn:
+            yield conn
+
+    app.dependency_overrides[get_db] = _override_db
+    return TestClient(app), quest_id
+
+
+def test_get_quest_photos_unknown_quest_returns_404(tmp_path: Path) -> None:
+    init_db()
+    r = TestClient(app).get("/api/quests/999/photos")
+    assert r.status_code == 404
+
+
+def test_get_quest_photos_returns_two_items(tmp_path: Path) -> None:
+    c, quest_id = _photos_client(tmp_path)
+    try:
+        r = c.get(f"/api/quests/{quest_id}/photos")
+        assert r.status_code == 200
+        assert len(r.json()) == 2
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_get_quest_photos_ordered_by_captured_at(tmp_path: Path) -> None:
+    c, quest_id = _photos_client(tmp_path)
+    try:
+        photos = c.get(f"/api/quests/{quest_id}/photos").json()
+        assert photos[0]["captured_at"] < photos[1]["captured_at"]
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_get_quest_photos_shape(tmp_path: Path) -> None:
+    c, quest_id = _photos_client(tmp_path)
+    try:
+        photo = c.get(f"/api/quests/{quest_id}/photos").json()[0]
+        assert set(photo.keys()) == {"id", "lat", "lon", "captured_at", "thumb_status", "is_orphan"}
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_get_quest_photos_no_photos_returns_empty(tmp_path: Path) -> None:
+    c = _seeded_client(tmp_path)
+    try:
+        quest_id = c.get("/api/quests").json()[0]["id"]
+        r = c.get(f"/api/quests/{quest_id}/photos")
+        assert r.status_code == 200
+        assert r.json() == []
+    finally:
+        app.dependency_overrides.clear()

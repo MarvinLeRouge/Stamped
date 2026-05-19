@@ -9,6 +9,15 @@ from stamped.core.db import get_db
 router = APIRouter()
 
 
+class QuestPhotoItem(BaseModel):
+    id: int
+    lat: float | None
+    lon: float | None
+    captured_at: str | None
+    thumb_status: str
+    is_orphan: bool
+
+
 class QuestResponse(BaseModel):
     id: int
     name: str | None
@@ -45,6 +54,32 @@ def get_quest_trackpoints(
             segments[fid] = []
         segments[fid].append([r["lat"], r["lon"]])
     return list(segments.values())
+
+
+@router.get("/quests/{quest_id}/photos", response_model=list[QuestPhotoItem])
+def get_quest_photos(
+    quest_id: int,
+    conn: Annotated[sqlite3.Connection, Depends(get_db)],
+) -> list[QuestPhotoItem]:
+    quest = conn.execute("SELECT id FROM quests WHERE id = ?", (quest_id,)).fetchone()
+    if quest is None:
+        raise HTTPException(status_code=404, detail="Quest not found")
+    rows = conn.execute(
+        "SELECT id, lat, lon, captured_at, thumb_status, is_orphan"
+        " FROM photos WHERE quest_id = ? ORDER BY captured_at",
+        (quest_id,),
+    ).fetchall()
+    return [
+        QuestPhotoItem(
+            id=r["id"],
+            lat=r["lat"],
+            lon=r["lon"],
+            captured_at=r["captured_at"],
+            thumb_status=r["thumb_status"],
+            is_orphan=bool(r["is_orphan"]),
+        )
+        for r in rows
+    ]
 
 
 @router.get("/quests", response_model=list[QuestResponse])
