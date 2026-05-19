@@ -200,6 +200,28 @@ def test_cluster_quests_gpx_no_overlap_without_utc_offset(
     assert result.gpx_assigned == 0
 
 
+def test_cluster_quests_bbox_from_gpx_when_no_exif_gps(
+    db_conn: sqlite3.Connection, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(settings, "quest_gap_hours", 6)
+    monkeypatch.setattr(settings, "camera_utc_offset_hours", 0)
+    # Photos without EXIF GPS — lat/lon are null at clustering time
+    _insert_photo(db_conn, "2024-07-14T08:00:00Z", lat=None, lon=None)
+    gpx_id = _insert_gpx(db_conn, "2024-07-14T07:55:00Z", "2024-07-14T10:00:00Z")
+    # Insert a trackpoint so the GPX bbox has real values
+    db_conn.execute(
+        "INSERT INTO gpx_trackpoints (gpx_file_id, recorded_at, lat, lon) VALUES (?, ?, ?, ?)",
+        (gpx_id, "2024-07-14T08:00:00Z", 45.5, 6.5),
+    )
+    db_conn.commit()
+    cluster_quests(db_conn)
+    row = db_conn.execute(
+        "SELECT bbox_lat_min, bbox_lat_max, bbox_lon_min, bbox_lon_max FROM quests"
+    ).fetchone()
+    assert row["bbox_lat_min"] == pytest.approx(45.5)
+    assert row["bbox_lon_min"] == pytest.approx(6.5)
+
+
 def test_cluster_quests_idempotent(
     db_conn: sqlite3.Connection, monkeypatch: pytest.MonkeyPatch
 ) -> None:
