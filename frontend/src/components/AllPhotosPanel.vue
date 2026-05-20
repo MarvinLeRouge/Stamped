@@ -197,7 +197,7 @@ watch(filterOrphan, () => {
 }
 
 .all-photos__item:hover {
-  background: #1e1e3a;
+  background: #2a2a4e;
 }
 
 .all-photos__thumb-wrap {
