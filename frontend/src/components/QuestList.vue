@@ -108,7 +108,7 @@ function label(name: string | null, autoName: string): string {
 
 .quest-list__meta {
   display: block;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   color: #888;
   margin-top: 2px;
 }
@@ -119,7 +119,7 @@ function label(name: string | null, autoName: string): string {
   color: #000;
   border-radius: 2px;
   padding: 0 3px;
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 </style>

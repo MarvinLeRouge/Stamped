@@ -225,7 +225,7 @@ watch(
   left: 4px;
   background: rgba(0, 0, 0, 0.6);
   color: white;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   font-weight: 700;
   padding: 1px 5px;
   border-radius: 3px;
@@ -233,7 +233,7 @@ watch(
 }
 .popup-date {
   margin-top: 4px;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   color: #555;
   text-align: center;
 }
