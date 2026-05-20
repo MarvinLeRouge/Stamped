@@ -8,6 +8,7 @@ export interface SystemStatus {
   thumbs_done: number
   thumbs_pending: number
   orphans: number
+  unquested: number
   gpx_files: number
   quests: number
   last_index_at: string | null

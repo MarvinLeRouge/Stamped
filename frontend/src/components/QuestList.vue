@@ -2,8 +2,10 @@
 import { onMounted } from 'vue'
 
 import { useQuestsStore } from '@/stores/quests'
+import { useStatusStore } from '@/stores/status'
 
 const store = useQuestsStore()
+const statusStore = useStatusStore()
 
 onMounted(() => {
   store.fetchQuests()
@@ -43,6 +45,16 @@ function label(name: string | null, autoName: string): string {
         </span>
       </li>
     </ul>
+
+    <div
+      v-if="statusStore.status && statusStore.status.unquested > 0"
+      class="quest-list__unquested"
+      :class="{ 'quest-list__unquested--active': store.showUnquested }"
+      @click="store.toggleUnquested()"
+    >
+      <span class="quest-list__name">Sans quest</span>
+      <span class="quest-list__meta">{{ statusStore.status.unquested }} photos</span>
+    </div>
   </aside>
 </template>
 
@@ -111,6 +123,22 @@ function label(name: string | null, autoName: string): string {
   font-size: 0.8rem;
   color: #888;
   margin-top: 2px;
+}
+
+.quest-list__unquested {
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  border-top: 1px solid #2a2a4e;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.quest-list__unquested:hover {
+  background: #2a2a4e;
+}
+
+.quest-list__unquested--active {
+  background: #3b3b6e;
 }
 
 .quest-list__gpx {

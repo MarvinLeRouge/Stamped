@@ -14,6 +14,7 @@ class SystemStatus(BaseModel):
     thumbs_done: int = 0
     thumbs_pending: int = 0
     orphans: int = 0
+    unquested: int = 0
     gpx_files: int = 0
     quests: int = 0
     last_index_at: str | None = None
@@ -35,6 +36,7 @@ def get_status(conn: Annotated[sqlite3.Connection, Depends(get_db)]) -> SystemSt
         thumbs_done=_count(conn, "SELECT COUNT(*) FROM photos WHERE thumb_status = 'done'"),
         thumbs_pending=_count(conn, "SELECT COUNT(*) FROM photos WHERE thumb_status = 'pending'"),
         orphans=_count(conn, "SELECT COUNT(*) FROM photos WHERE is_orphan = 1"),
+        unquested=_count(conn, "SELECT COUNT(*) FROM photos WHERE quest_id IS NULL"),
         gpx_files=_count(conn, "SELECT COUNT(*) FROM gpx_files"),
         quests=_count(conn, "SELECT COUNT(*) FROM quests"),
         last_index_at=_get_state(conn, "last_index_at"),
