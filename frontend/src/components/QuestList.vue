@@ -48,13 +48,13 @@ function label(name: string | null, autoName: string): string {
 
 <style scoped>
 .quest-list {
-  width: 220px;
+  min-width: 180px;
+  max-width: 280px;
   background: #1a1a2e;
   color: white;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  flex-shrink: 0;
 }
 
 .quest-list__title {

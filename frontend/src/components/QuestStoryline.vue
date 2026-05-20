@@ -172,13 +172,13 @@ watch(
 
 <style scoped>
 .storyline {
-  width: 220px;
+  min-width: 180px;
+  max-width: 280px;
   background: #111128;
   color: white;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  flex-shrink: 0;
   border-left: 1px solid #2a2a4e;
 }
 
