@@ -48,13 +48,13 @@ function label(name: string | null, autoName: string): string {
 
 <style scoped>
 .quest-list {
-  width: 220px;
+  min-width: 180px;
+  max-width: 280px;
   background: #1a1a2e;
   color: white;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  flex-shrink: 0;
 }
 
 .quest-list__title {
@@ -108,7 +108,7 @@ function label(name: string | null, autoName: string): string {
 
 .quest-list__meta {
   display: block;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   color: #888;
   margin-top: 2px;
 }
@@ -119,7 +119,7 @@ function label(name: string | null, autoName: string): string {
   color: #000;
   border-radius: 2px;
   padding: 0 3px;
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 </style>

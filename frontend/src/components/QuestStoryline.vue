@@ -172,13 +172,13 @@ watch(
 
 <style scoped>
 .storyline {
-  width: 220px;
+  min-width: 180px;
+  max-width: 280px;
   background: #111128;
   color: white;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  flex-shrink: 0;
   border-left: 1px solid #2a2a4e;
 }
 
@@ -256,7 +256,7 @@ watch(
 }
 
 .storyline__index {
-  font-size: 0.65rem;
+  font-size: 0.8rem;
   font-weight: 700;
   color: #666;
   min-width: 1.2rem;
@@ -285,7 +285,7 @@ watch(
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   color: #666;
   cursor: default;
 }
@@ -299,7 +299,7 @@ watch(
 }
 
 .storyline__date {
-  font-size: 0.65rem;
+  font-size: 0.8rem;
   color: #999;
   line-height: 1.3;
   word-break: break-all;
@@ -314,7 +314,7 @@ watch(
   background: none;
   border: 1px solid transparent;
   cursor: pointer;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   width: 1.4rem;
   height: 1.4rem;
   padding: 0;
@@ -351,7 +351,7 @@ watch(
 
 .storyline__action-btn--danger {
   color: #e06c75;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   font-weight: 700;
 }
 

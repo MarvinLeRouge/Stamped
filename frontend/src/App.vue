@@ -4,6 +4,9 @@ import PhotoLightbox from '@/components/PhotoLightbox.vue'
 import QuestList from '@/components/QuestList.vue'
 import QuestStoryline from '@/components/QuestStoryline.vue'
 import StatusDashboard from '@/components/StatusDashboard.vue'
+import { useQuestsStore } from '@/stores/quests'
+
+const questsStore = useQuestsStore()
 </script>
 
 <template>
@@ -12,7 +15,10 @@ import StatusDashboard from '@/components/StatusDashboard.vue'
       <h1 class="logo">Stamped</h1>
       <StatusDashboard />
     </header>
-    <div class="content">
+    <div
+      class="content"
+      :class="{ 'content--with-storyline': questsStore.selectedQuestId !== null }"
+    >
       <QuestList />
       <QuestStoryline />
       <main class="map-container">
@@ -65,13 +71,18 @@ body,
 }
 
 .content {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(180px, max-content) 1fr;
   flex: 1;
   overflow: hidden;
 }
 
+.content--with-storyline {
+  grid-template-columns: minmax(180px, max-content) minmax(180px, max-content) 1fr;
+}
+
 .map-container {
-  flex: 1;
   overflow: hidden;
+  min-width: 0;
 }
 </style>
