@@ -13,6 +13,7 @@ import { usePhotosStore } from '@/stores/photos'
 import { useQuestsStore } from '@/stores/quests'
 import { useLightboxStore } from '@/stores/lightbox'
 import { usePlacementStore } from '@/stores/placement'
+import { useHighlightStore } from '@/stores/highlight'
 
 const TILE_URL = '/tiles/{z}/{x}/{y}.png'
 const TILE_ATTRIBUTION =
@@ -24,10 +25,12 @@ const photosStore = usePhotosStore()
 const questsStore = useQuestsStore()
 const lightboxStore = useLightboxStore()
 const placementStore = usePlacementStore()
+const highlightStore = useHighlightStore()
 
 const mapRef = ref<{ leafletObject: L.Map } | null>(null)
 let clusterGroup: L.MarkerClusterGroup | null = null
 let gpxPolylines: L.Polyline[] = []
+const markerMap = new Map<number, L.Marker>()
 
 function formatDate(capturedAt: string | null): string {
   if (!capturedAt) return ''
@@ -73,6 +76,7 @@ function refreshMarkers(): void {
     map.removeLayer(clusterGroup)
   }
   clusterGroup = L.markerClusterGroup()
+  markerMap.clear()
 
   const geolocated = photosStore.photos.filter((p) => p.lat !== null && p.lon !== null)
   const inQuest = questsStore.selectedQuestId !== null
@@ -87,6 +91,9 @@ function refreshMarkers(): void {
         img.addEventListener('click', () => lightboxStore.open(photo.id), { once: true })
       }
     })
+    marker.on('mouseover', () => highlightStore.highlight(photo.id))
+    marker.on('mouseout', () => highlightStore.highlight(null))
+    markerMap.set(photo.id, marker)
     clusterGroup!.addLayer(marker)
   })
 
@@ -159,6 +166,18 @@ async function loadVisiblePhotos(): Promise<void> {
   })
   refreshMarkers()
 }
+
+watch(
+  () => highlightStore.hoveredPhotoId,
+  (newId, oldId) => {
+    if (oldId !== null) {
+      markerMap.get(oldId)?.getElement()?.classList.remove('marker--highlighted')
+    }
+    if (newId !== null) {
+      markerMap.get(newId)?.getElement()?.classList.add('marker--highlighted')
+    }
+  },
+)
 
 watch(
   () => placementStore.placingPhotoId,
@@ -236,6 +255,10 @@ watch(
   font-size: 0.8rem;
   color: #555;
   text-align: center;
+}
+.marker--highlighted {
+  filter: hue-rotate(160deg) brightness(1.3) drop-shadow(0 0 4px #e85d04);
+  z-index: 9999 !important;
 }
 .popup-generating {
   width: 150px;

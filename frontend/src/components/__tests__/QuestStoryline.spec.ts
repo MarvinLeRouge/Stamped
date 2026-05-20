@@ -7,6 +7,7 @@ import { useQuestsStore } from '@/stores/quests'
 import { useLightboxStore } from '@/stores/lightbox'
 import { usePlacementStore } from '@/stores/placement'
 import { useStatusStore } from '@/stores/status'
+import { useHighlightStore } from '@/stores/highlight'
 import api from '@/api'
 
 vi.mock('@/api', () => ({ default: { get: vi.fn(), patch: vi.fn(), delete: vi.fn() } }))
@@ -103,6 +104,32 @@ describe('QuestStoryline', () => {
     store.selectedQuestId = 2
     await flushPromises()
     expect(wrapper.findAll('.storyline__item')).toHaveLength(1)
+  })
+
+  it('mouseenter on item sets hoveredPhotoId', async () => {
+    const highlightStore = useHighlightStore()
+    useQuestsStore().selectedQuestId = 1
+    await flushPromises()
+    await wrapper.find('.storyline__item').trigger('mouseenter')
+    expect(highlightStore.hoveredPhotoId).toBe(PHOTOS[0]!.id)
+  })
+
+  it('mouseleave on item clears hoveredPhotoId', async () => {
+    const highlightStore = useHighlightStore()
+    useQuestsStore().selectedQuestId = 1
+    await flushPromises()
+    await wrapper.find('.storyline__item').trigger('mouseenter')
+    await wrapper.find('.storyline__item').trigger('mouseleave')
+    expect(highlightStore.hoveredPhotoId).toBeNull()
+  })
+
+  it('highlighted item gets the highlighted class', async () => {
+    const highlightStore = useHighlightStore()
+    useQuestsStore().selectedQuestId = 1
+    await flushPromises()
+    highlightStore.highlight(PHOTOS[0]!.id)
+    await flushPromises()
+    expect(wrapper.find('.storyline__item').classes()).toContain('storyline__item--highlighted')
   })
 
   it('clicking delete button removes photo from list', async () => {
