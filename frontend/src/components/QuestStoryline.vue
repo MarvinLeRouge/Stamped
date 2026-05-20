@@ -158,7 +158,7 @@ watch(
               title="Delete photo"
               @click="deletePhoto(photo.id)"
             >
-              🗑
+              ✕
             </button>
           </div>
         </div>
@@ -346,8 +346,16 @@ watch(
   border-color: #c0392b;
 }
 
+.storyline__action-btn--danger {
+  border-radius: 50%;
+  color: #e06c75;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
 .storyline__action-btn--danger:hover {
-  background: #4a1a1a;
-  border-color: #8a2a2a;
+  background: #2a1a1e;
+  border-color: #c0392b;
+  color: #ff6b6b;
 }
 </style>
