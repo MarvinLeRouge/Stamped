@@ -5,6 +5,7 @@ import api from '@/api'
 import { useLightboxStore } from '@/stores/lightbox'
 import { usePlacementStore } from '@/stores/placement'
 import { useQuestsStore } from '@/stores/quests'
+import { useStatusStore } from '@/stores/status'
 
 interface StorylinePhoto {
   id: number
@@ -16,6 +17,7 @@ interface StorylinePhoto {
 const questsStore = useQuestsStore()
 const lightboxStore = useLightboxStore()
 const placementStore = usePlacementStore()
+const statusStore = useStatusStore()
 
 const photos = ref<StorylinePhoto[]>([])
 const loading = ref(false)
@@ -72,6 +74,7 @@ function formatDate(capturedAt: string | null): string {
 async function deletePhoto(photoId: number): Promise<void> {
   await api.delete(`/photos/${photoId}`)
   photos.value = photos.value.filter((p) => p.id !== photoId)
+  await Promise.all([questsStore.fetchQuests(), statusStore.fetch()])
 }
 
 watch(

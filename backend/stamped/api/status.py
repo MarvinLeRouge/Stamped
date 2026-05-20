@@ -24,14 +24,18 @@ def _get_state(conn: sqlite3.Connection, key: str) -> str | None:
     return row["value"] if row else None
 
 
+def _count(conn: sqlite3.Connection, query: str) -> int:
+    return int(conn.execute(query).fetchone()[0])
+
+
 @router.get("/status", response_model=SystemStatus)
 def get_status(conn: Annotated[sqlite3.Connection, Depends(get_db)]) -> SystemStatus:
     return SystemStatus(
-        photos_total=int(_get_state(conn, "photos_total") or 0),
-        thumbs_done=int(_get_state(conn, "thumbs_done") or 0),
-        thumbs_pending=int(_get_state(conn, "thumbs_pending") or 0),
-        orphans=int(_get_state(conn, "orphans_count") or 0),
-        gpx_files=int(_get_state(conn, "gpx_files") or 0),
-        quests=int(_get_state(conn, "quests") or 0),
+        photos_total=_count(conn, "SELECT COUNT(*) FROM photos"),
+        thumbs_done=_count(conn, "SELECT COUNT(*) FROM photos WHERE thumb_status = 'done'"),
+        thumbs_pending=_count(conn, "SELECT COUNT(*) FROM photos WHERE thumb_status = 'pending'"),
+        orphans=_count(conn, "SELECT COUNT(*) FROM photos WHERE is_orphan = 1"),
+        gpx_files=_count(conn, "SELECT COUNT(*) FROM gpx_files"),
+        quests=_count(conn, "SELECT COUNT(*) FROM quests"),
         last_index_at=_get_state(conn, "last_index_at"),
     )
