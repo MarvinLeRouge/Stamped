@@ -526,6 +526,44 @@ def test_place_explicit_coords_places_all_orphans(tmp_path: Path) -> None:
         app.dependency_overrides.clear()
 
 
+def test_place_median_from_geolocated_photos(tmp_path: Path) -> None:
+    """_median_point falls back to geolocated photos when no trackpoints exist."""
+    init_db()
+
+    with get_connection() as conn:
+        conn.execute(
+            "INSERT INTO quests (auto_name, started_at, ended_at, photo_count, has_gpx)"
+            " VALUES ('Q', '2024-06-01T08:00:00Z', '2024-06-01T10:00:00Z', 1, 0)"
+        )
+        quest_id: int = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+        conn.execute(
+            "INSERT INTO photos (file_path, file_hash, captured_at, thumb_status, quest_id,"
+            " is_orphan, lat, lon) VALUES ('p.jpg', 'hq', '2024-06-01T09:00:00Z', 'done', ?, 0,"
+            " 43.0, 5.5)",
+            (quest_id,),
+        )
+        conn.execute(
+            "INSERT INTO photos (file_path, file_hash, captured_at, thumb_status, quest_id,"
+            " is_orphan) VALUES ('o.jpg', 'ho', '2024-06-01T08:00:00Z', 'done', ?, 1)",
+            (quest_id,),
+        )
+        conn.commit()
+
+    def _override_db() -> Generator[sqlite3.Connection, None, None]:
+        with get_connection() as conn:
+            yield conn
+
+    app.dependency_overrides[get_db] = _override_db
+    try:
+        c = TestClient(app)
+        r = c.post(f"/api/quests/{quest_id}/place", json={})
+        assert r.status_code == 200
+        assert r.json()["lat"] == pytest.approx(43.0)
+        assert r.json()["lon"] == pytest.approx(5.5)
+    finally:
+        app.dependency_overrides.clear()
+
+
 def test_place_median_from_trackpoints(tmp_path: Path) -> None:
     c, quest_id = _place_client(tmp_path)
     try:
