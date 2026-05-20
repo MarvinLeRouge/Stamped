@@ -275,7 +275,8 @@ watch(
 }
 
 .storyline__item--highlighted {
-  background: #1e1e3a;
+  background: #2a2a52;
+  border-left-color: #e85d04;
 }
 
 .storyline__index {
