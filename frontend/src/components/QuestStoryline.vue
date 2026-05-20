@@ -312,10 +312,16 @@ watch(
   border: 1px solid transparent;
   cursor: pointer;
   font-size: 0.75rem;
-  padding: 2px;
-  border-radius: 3px;
+  width: 1.4rem;
+  height: 1.4rem;
+  padding: 0;
+  border-radius: 50%;
   opacity: 0.5;
   line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   transition:
     opacity 0.15s,
     border-color 0.15s;
@@ -323,12 +329,6 @@ watch(
 
 .storyline__action-btn:hover {
   opacity: 1;
-  border-color: #4a4a8e;
-  background: #2a2a4e;
-}
-
-.storyline__action-btn--pin {
-  border-radius: 50%;
 }
 
 .storyline__action-btn--pin:hover {
@@ -347,7 +347,6 @@ watch(
 }
 
 .storyline__action-btn--danger {
-  border-radius: 50%;
   color: #e06c75;
   font-size: 0.7rem;
   font-weight: 700;
