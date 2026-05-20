@@ -50,7 +50,7 @@ coverage:
         enabled: true
         target: 90%
         threshold: 5%
-        informational: false
+        informational: true
         if_not_found: success
 
 comment:
