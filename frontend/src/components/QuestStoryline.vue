@@ -122,7 +122,12 @@ watch(
     <p v-else-if="photos.length === 0" class="storyline__msg">No photos.</p>
 
     <ul v-else class="storyline__list">
-      <li v-for="(photo, i) in photos" :key="photo.id" class="storyline__item">
+      <li
+        v-for="(photo, i) in photos"
+        :key="photo.id"
+        class="storyline__item"
+        :class="{ 'storyline__item--orphan': photo.is_orphan }"
+      >
         <span class="storyline__index">{{ i + 1 }}</span>
         <div class="storyline__thumb-wrap">
           <img
@@ -138,9 +143,10 @@ watch(
           <span class="storyline__date">{{ formatDate(photo.captured_at) }}</span>
           <div class="storyline__actions">
             <button
-              class="storyline__action-btn"
+              class="storyline__action-btn storyline__action-btn--pin"
               :class="{
                 'storyline__action-btn--active': placementStore.placingPhotoId === photo.id,
+                'storyline__action-btn--placed': !photo.is_orphan,
               }"
               title="Place on map"
               @click="placementStore.startPlacing(photo.id)"
@@ -239,6 +245,11 @@ watch(
   gap: 0.5rem;
   padding: 0.4rem 0.6rem;
   border-bottom: 1px solid #1e1e38;
+  border-left: 3px solid transparent;
+}
+
+.storyline__item--orphan {
+  border-left-color: #f59e0b;
 }
 
 .storyline__index {
@@ -298,26 +309,37 @@ watch(
 
 .storyline__action-btn {
   background: none;
-  border: none;
+  border: 1px solid transparent;
   cursor: pointer;
   font-size: 0.75rem;
   padding: 1px 3px;
   border-radius: 3px;
   opacity: 0.5;
   line-height: 1;
+  transition:
+    opacity 0.1s,
+    border-color 0.1s;
 }
 
 .storyline__action-btn:hover {
   opacity: 1;
+  border-color: #4a4a8e;
   background: #2a2a4e;
+}
+
+.storyline__action-btn--pin.storyline__action-btn--placed {
+  opacity: 1;
+  filter: hue-rotate(80deg) brightness(1.2);
 }
 
 .storyline__action-btn--active {
   opacity: 1;
   background: #3b3b6e;
+  border-color: #6a6aae;
 }
 
 .storyline__action-btn--danger:hover {
   background: #4a1a1a;
+  border-color: #8a2a2a;
 }
 </style>
