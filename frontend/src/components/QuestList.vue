@@ -55,6 +55,17 @@ function label(name: string | null, autoName: string): string {
       <span class="quest-list__name">Sans quest</span>
       <span class="quest-list__meta">{{ statusStore.status.unquested }} photos</span>
     </div>
+
+    <div
+      class="quest-list__all"
+      :class="{ 'quest-list__all--active': store.showAllPhotos }"
+      @click="store.toggleAllPhotos()"
+    >
+      <span class="quest-list__name">Toutes les photos</span>
+      <span v-if="statusStore.status" class="quest-list__meta">
+        {{ statusStore.status.photos_total }} photos
+      </span>
+    </div>
   </aside>
 </template>
 
@@ -138,6 +149,22 @@ function label(name: string | null, autoName: string): string {
 }
 
 .quest-list__unquested--active {
+  background: #3b3b6e;
+}
+
+.quest-list__all {
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  border-top: 1px solid #2a2a4e;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.quest-list__all:hover {
+  background: #2a2a4e;
+}
+
+.quest-list__all--active {
   background: #3b3b6e;
 }
 

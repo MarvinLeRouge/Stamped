@@ -21,6 +21,7 @@ export const useQuestsStore = defineStore('quests', () => {
   const quests = ref<Quest[]>([])
   const selectedQuestId = ref<number | null>(null)
   const showUnquested = ref(false)
+  const showAllPhotos = ref(false)
   const loading = ref(false)
   const error = ref<string | null>(null)
 
@@ -45,23 +46,39 @@ export const useQuestsStore = defineStore('quests', () => {
 
   function selectQuest(id: number | null): void {
     selectedQuestId.value = id
-    if (id !== null) showUnquested.value = false
+    if (id !== null) {
+      showUnquested.value = false
+      showAllPhotos.value = false
+    }
   }
 
   function toggleUnquested(): void {
     showUnquested.value = !showUnquested.value
-    if (showUnquested.value) selectedQuestId.value = null
+    if (showUnquested.value) {
+      selectedQuestId.value = null
+      showAllPhotos.value = false
+    }
+  }
+
+  function toggleAllPhotos(): void {
+    showAllPhotos.value = !showAllPhotos.value
+    if (showAllPhotos.value) {
+      selectedQuestId.value = null
+      showUnquested.value = false
+    }
   }
 
   return {
     quests,
     selectedQuestId,
     showUnquested,
+    showAllPhotos,
     loading,
     error,
     fetchQuests,
     renameQuest,
     selectQuest,
     toggleUnquested,
+    toggleAllPhotos,
   }
 })
