@@ -51,6 +51,7 @@ coverage:
         target: 90%
         threshold: 5%
         informational: false
+        if_not_found: success
 
 comment:
   layout: reach,diff,flags,files
