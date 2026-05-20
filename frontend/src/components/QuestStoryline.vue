@@ -312,13 +312,13 @@ watch(
   border: 1px solid transparent;
   cursor: pointer;
   font-size: 0.75rem;
-  padding: 1px 3px;
+  padding: 2px;
   border-radius: 3px;
   opacity: 0.5;
   line-height: 1;
   transition:
-    opacity 0.1s,
-    border-color 0.1s;
+    opacity 0.15s,
+    border-color 0.15s;
 }
 
 .storyline__action-btn:hover {
@@ -327,15 +327,23 @@ watch(
   background: #2a2a4e;
 }
 
+.storyline__action-btn--pin {
+  border-radius: 50%;
+}
+
+.storyline__action-btn--pin:hover {
+  border-color: #c0392b;
+  background: #2a1a1e;
+}
+
 .storyline__action-btn--pin.storyline__action-btn--placed {
   opacity: 1;
-  filter: hue-rotate(80deg) brightness(1.2);
 }
 
 .storyline__action-btn--active {
   opacity: 1;
-  background: #3b3b6e;
-  border-color: #6a6aae;
+  background: #3b1a22;
+  border-color: #c0392b;
 }
 
 .storyline__action-btn--danger:hover {
