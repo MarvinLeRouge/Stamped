@@ -161,6 +161,15 @@ async function loadVisiblePhotos(): Promise<void> {
 }
 
 watch(
+  () => placementStore.placingPhotoId,
+  (id) => {
+    const map = mapRef.value?.leafletObject
+    if (!map) return
+    map.getContainer().style.cursor = id !== null ? 'crosshair' : ''
+  },
+)
+
+watch(
   () => questsStore.selectedQuestId,
   async (id) => {
     await refreshGpxTrace(id)
@@ -190,13 +199,7 @@ watch(
 </script>
 
 <template>
-  <l-map
-    ref="mapRef"
-    :zoom="ZOOM"
-    :center="CENTER"
-    :class="['map', { 'map--placing': placementStore.placingPhotoId !== null }]"
-    @ready="onMapReady"
-  >
+  <l-map ref="mapRef" :zoom="ZOOM" :center="CENTER" class="map" @ready="onMapReady">
     <l-tile-layer :url="TILE_URL" :attribution="TILE_ATTRIBUTION" layer-type="base" />
   </l-map>
 </template>
@@ -205,10 +208,6 @@ watch(
 .map {
   height: 100%;
   width: 100%;
-}
-
-.map--placing {
-  cursor: crosshair !important;
 }
 </style>
 
