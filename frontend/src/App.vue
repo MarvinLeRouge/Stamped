@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import AllPhotosPanel from '@/components/AllPhotosPanel.vue'
 import MapView from '@/components/MapView.vue'
 import PhotoLightbox from '@/components/PhotoLightbox.vue'
 import QuestList from '@/components/QuestList.vue'
 import QuestStoryline from '@/components/QuestStoryline.vue'
+import UnquestedPanel from '@/components/UnquestedPanel.vue'
 import StatusDashboard from '@/components/StatusDashboard.vue'
 import { useQuestsStore } from '@/stores/quests'
 
@@ -17,10 +19,17 @@ const questsStore = useQuestsStore()
     </header>
     <div
       class="content"
-      :class="{ 'content--with-storyline': questsStore.selectedQuestId !== null }"
+      :class="{
+        'content--with-storyline':
+          questsStore.selectedQuestId !== null ||
+          questsStore.showUnquested ||
+          questsStore.showAllPhotos,
+      }"
     >
       <QuestList />
       <QuestStoryline />
+      <UnquestedPanel />
+      <AllPhotosPanel />
       <main class="map-container">
         <MapView />
       </main>

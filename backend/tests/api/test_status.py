@@ -34,6 +34,7 @@ def test_status_shape(client: TestClient) -> None:
         "thumbs_done",
         "thumbs_pending",
         "orphans",
+        "unquested",
         "gpx_files",
         "quests",
         "last_index_at",

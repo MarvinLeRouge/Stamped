@@ -163,3 +163,21 @@ def test_list_photos_response_shape(db_conn: sqlite3.Connection) -> None:
         }
     finally:
         app.dependency_overrides.clear()
+
+
+def test_list_photos_no_quest_filter(db_conn: sqlite3.Connection) -> None:
+    db_conn.execute(
+        "INSERT INTO quests (auto_name, started_at, ended_at, photo_count, has_gpx)"
+        " VALUES ('Q', '2024-01-01T00:00:00Z', '2024-01-01T01:00:00Z', 1, 0)"
+    )
+    db_conn.commit()
+    _insert_photo(db_conn, quest_id=None, idx=0)
+    _insert_photo(db_conn, quest_id=1, idx=1)
+    app.dependency_overrides[get_db] = _override(db_conn)
+    try:
+        r = TestClient(app).get("/api/photos?no_quest=true")
+        assert r.status_code == 200
+        assert len(r.json()) == 1
+        assert r.json()[0]["quest_id"] is None
+    finally:
+        app.dependency_overrides.clear()

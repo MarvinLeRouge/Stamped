@@ -4,6 +4,7 @@ import { mount } from '@vue/test-utils'
 
 import QuestList from '../QuestList.vue'
 import { useQuestsStore } from '@/stores/quests'
+import { useStatusStore } from '@/stores/status'
 
 vi.mock('@/api', () => ({ default: { get: vi.fn().mockResolvedValue({ data: [] }) } }))
 
@@ -91,5 +92,43 @@ describe('QuestList', () => {
     expect(store.selectedQuestId).toBe(1)
     await wrapper.find('li').trigger('click')
     expect(store.selectedQuestId).toBeNull()
+  })
+
+  it('clicking "Toutes les photos" toggles showAllPhotos', async () => {
+    const store = useQuestsStore()
+    const statusStore = useStatusStore()
+    statusStore.status = {
+      photos_total: 5,
+      thumbs_done: 5,
+      thumbs_pending: 0,
+      orphans: 0,
+      unquested: 0,
+      gpx_files: 0,
+      quests: 1,
+      last_index_at: null,
+    }
+    const wrapper = mount(QuestList)
+    await wrapper.find('.quest-list__all').trigger('click')
+    expect(store.showAllPhotos).toBe(true)
+    await wrapper.find('.quest-list__all').trigger('click')
+    expect(store.showAllPhotos).toBe(false)
+  })
+
+  it('clicking "Sans quest" toggles showUnquested when unquested > 0', async () => {
+    const store = useQuestsStore()
+    const statusStore = useStatusStore()
+    statusStore.status = {
+      photos_total: 5,
+      thumbs_done: 5,
+      thumbs_pending: 0,
+      orphans: 1,
+      unquested: 1,
+      gpx_files: 0,
+      quests: 1,
+      last_index_at: null,
+    }
+    const wrapper = mount(QuestList)
+    await wrapper.find('.quest-list__unquested').trigger('click')
+    expect(store.showUnquested).toBe(true)
   })
 })

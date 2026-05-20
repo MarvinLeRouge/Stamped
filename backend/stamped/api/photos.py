@@ -37,6 +37,7 @@ def list_photos(
     date_to: str | None = Query(default=None),
     quest_id: int | None = Query(default=None),
     orphan: bool | None = Query(default=None),
+    no_quest: bool | None = Query(default=None),
     limit: int = Query(default=500, ge=1, le=1000),
     offset: int = Query(default=0, ge=0),
 ) -> list[PhotoSummary]:
@@ -67,6 +68,8 @@ def list_photos(
     if orphan is not None:
         conditions.append("is_orphan = ?")
         params.append(1 if orphan else 0)
+    if no_quest is True:
+        conditions.append("quest_id IS NULL")
 
     where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
     params.extend([limit, offset])

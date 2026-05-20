@@ -2,6 +2,7 @@
 import { computed, nextTick, ref, watch } from 'vue'
 
 import api from '@/api'
+import { useHighlightStore } from '@/stores/highlight'
 import { useLightboxStore } from '@/stores/lightbox'
 import { usePlacementStore } from '@/stores/placement'
 import { useQuestsStore } from '@/stores/quests'
@@ -18,6 +19,9 @@ const questsStore = useQuestsStore()
 const lightboxStore = useLightboxStore()
 const placementStore = usePlacementStore()
 const statusStore = useStatusStore()
+const highlightStore = useHighlightStore()
+
+const listRef = ref<HTMLUListElement | null>(null)
 
 const photos = ref<StorylinePhoto[]>([])
 const loading = ref(false)
@@ -78,6 +82,15 @@ async function deletePhoto(photoId: number): Promise<void> {
 }
 
 watch(
+  () => highlightStore.hoveredPhotoId,
+  (id) => {
+    if (!id || !listRef.value) return
+    const el = listRef.value.querySelector<HTMLElement>(`[data-photo-id="${id}"]`)
+    el?.scrollIntoView?.({ behavior: 'smooth', block: 'nearest' })
+  },
+)
+
+watch(
   () => questsStore.selectedQuestId,
   async (id) => {
     photos.value = []
@@ -124,12 +137,18 @@ watch(
     <p v-if="loading" class="storyline__msg">Loading…</p>
     <p v-else-if="photos.length === 0" class="storyline__msg">No photos.</p>
 
-    <ul v-else class="storyline__list">
+    <ul v-else ref="listRef" class="storyline__list">
       <li
         v-for="(photo, i) in photos"
         :key="photo.id"
         class="storyline__item"
-        :class="{ 'storyline__item--orphan': photo.is_orphan }"
+        :class="{
+          'storyline__item--orphan': photo.is_orphan,
+          'storyline__item--highlighted': highlightStore.hoveredPhotoId === photo.id,
+        }"
+        :data-photo-id="photo.id"
+        @mouseenter="highlightStore.highlight(photo.id)"
+        @mouseleave="highlightStore.highlight(null)"
       >
         <span class="storyline__index">{{ i + 1 }}</span>
         <div class="storyline__thumb-wrap">
@@ -253,6 +272,11 @@ watch(
 
 .storyline__item--orphan {
   border-left-color: #f59e0b;
+}
+
+.storyline__item--highlighted {
+  background: #2a2a4e;
+  border-left-color: #e85d04;
 }
 
 .storyline__index {

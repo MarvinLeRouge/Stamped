@@ -227,17 +227,23 @@ After the first import of a geographic area, Stamped works entirely offline.
 - [x] **Phase 6** — Orphan management (manual placement, bulk placement, photo deletion, deleted-hash blocklist)
 - [x] **Phase 7** — Desktop layout (CSS Grid, font scale, boilerplate cleanup)
 
-### 🔜 v2 — Planned
+### ✅ v2 — In progress
 
-- [ ] Synchronized storyline ↔ map (hover on photo highlights marker, and vice versa)
-- [ ] "Photos without quest" view — orphans with `quest_id = NULL`, with placement and deletion actions
-- [ ] Global photo browser — date, orphan status and quest filters
-- [ ] Folder watch — automatic import on file change
-- [ ] Elevation profile in storyline
-- [ ] Export (JSON, filtered GPX)
-- [ ] Alternative OSM layers (topo, satellite)
+- [x] Synchronized storyline ↔ map — hover on a photo highlights the map marker, and vice versa
+- [x] "Photos without quest" view — photos with `quest_id = NULL`, with placement and deletion actions
+- [x] Global photo browser — all photos with orphan status filter
+- [ ] Alternative OSM layers (topo, satellite) — with filesystem tile cache
+- [ ] Elevation profile in storyline — design first
 - [ ] Timeline + map synchronized view
+- [ ] Folder watch — automatic import on file change
 - [ ] RAW image support
+
+### 🔜 v3 — Planned
+
+- [ ] Export (JSON, filtered GPX)
+- [ ] Activity type tagging
+- [ ] Dark theme
+- [ ] Keyboard shortcuts
 
 ---
 

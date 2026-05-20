@@ -80,4 +80,29 @@ describe('useQuestsStore', () => {
     await store.renameQuest(1, null)
     expect(store.quests[0]!.name).toBeNull()
   })
+
+  it('renameQuest with unknown id does not update list', async () => {
+    const base = mockQuests[0]!
+    vi.mocked(api).patch.mockResolvedValue({ data: { ...base, name: 'X' } })
+    const store = useQuestsStore()
+    store.quests = [...mockQuests]
+    await store.renameQuest(999, 'X')
+    expect(store.quests[0]!.name).toBeNull()
+  })
+
+  it('toggleUnquested back to false does not clear selectedQuestId', () => {
+    const store = useQuestsStore()
+    store.selectedQuestId = null
+    store.showUnquested = true
+    store.toggleUnquested()
+    expect(store.showUnquested).toBe(false)
+    expect(store.selectedQuestId).toBeNull()
+  })
+
+  it('toggleAllPhotos back to false does not clear selectedQuestId', () => {
+    const store = useQuestsStore()
+    store.showAllPhotos = true
+    store.toggleAllPhotos()
+    expect(store.showAllPhotos).toBe(false)
+  })
 })
