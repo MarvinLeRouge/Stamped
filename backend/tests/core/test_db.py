@@ -14,6 +14,7 @@ EXPECTED_TABLES = {
     "geocode_cache",
     "system_state",
     "schema_migrations",
+    "deleted_photos",
 }
 
 EXPECTED_INDEXES = {

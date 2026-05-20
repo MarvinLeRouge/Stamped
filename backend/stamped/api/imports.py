@@ -134,22 +134,8 @@ def _run_pipeline(
                     break
 
             photos_total = conn.execute("SELECT COUNT(*) FROM photos").fetchone()[0]
-            orphans = conn.execute("SELECT COUNT(*) FROM photos WHERE is_orphan = 1").fetchone()[0]
-            gpx_count = conn.execute("SELECT COUNT(*) FROM gpx_files").fetchone()[0]
-            quests_count = conn.execute("SELECT COUNT(*) FROM quests").fetchone()[0]
 
-            _update_system_state(
-                conn,
-                {
-                    "photos_total": photos_total,
-                    "orphans_count": orphans,
-                    "gpx_files": gpx_count,
-                    "quests": quests_count,
-                    "thumbs_done": thumbs_done,
-                    "thumbs_pending": thumbs_failed,
-                    "last_index_at": _now(),
-                },
-            )
+            _update_system_state(conn, {"last_index_at": _now()})
             conn.commit()
 
             job.total = photos_total

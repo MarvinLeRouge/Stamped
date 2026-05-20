@@ -52,14 +52,18 @@ def test_status_defaults_to_zero(client: TestClient) -> None:
     assert data["last_index_at"] is None
 
 
-def test_status_reflects_system_state(client: TestClient) -> None:
+def test_status_reflects_live_data(client: TestClient) -> None:
     def _override_db() -> Generator[sqlite3.Connection, None, None]:
         from stamped.core.db import get_connection
 
         with get_connection() as conn:
             conn.execute(
-                "INSERT OR REPLACE INTO system_state (key, value) VALUES (?, ?)",
-                ("photos_total", "42"),
+                "INSERT INTO photos (file_path, file_hash, is_orphan, thumb_status)"
+                " VALUES ('a.jpg', 'aaaa', 1, 'done')"
+            )
+            conn.execute(
+                "INSERT INTO photos (file_path, file_hash, is_orphan, thumb_status)"
+                " VALUES ('b.jpg', 'bbbb', 0, 'pending')"
             )
             conn.commit()
             yield conn
@@ -67,6 +71,10 @@ def test_status_reflects_system_state(client: TestClient) -> None:
     app.dependency_overrides[get_db] = _override_db
     try:
         r = client.get("/api/status")
-        assert r.json()["photos_total"] == 42
+        data = r.json()
+        assert data["photos_total"] == 2
+        assert data["thumbs_done"] == 1
+        assert data["thumbs_pending"] == 1
+        assert data["orphans"] == 1
     finally:
         app.dependency_overrides.clear()

@@ -5,17 +5,20 @@ import { mount, flushPromises } from '@vue/test-utils'
 import MapView from '../MapView.vue'
 import { usePhotosStore } from '@/stores/photos'
 import { useQuestsStore } from '@/stores/quests'
+import { usePlacementStore } from '@/stores/placement'
 import api from '@/api'
 
 // ── Leaflet mocks ─────────────────────────────────────────────────────────────
 
 const mockMarker = { bindPopup: vi.fn().mockReturnThis(), on: vi.fn() }
 const mockCluster = { addLayer: vi.fn() }
+const mockContainer = { style: { cursor: '' } }
 const mockMap = {
   removeLayer: vi.fn(),
   addLayer: vi.fn(),
   on: vi.fn(),
   fitBounds: vi.fn(),
+  getContainer: vi.fn(() => mockContainer),
   getBounds: vi.fn().mockReturnValue({
     getSouth: () => 44.0,
     getNorth: () => 46.0,
@@ -51,7 +54,7 @@ vi.mock('@vue-leaflet/vue-leaflet', () => ({
 vi.mock('leaflet.markercluster', () => ({}))
 vi.mock('leaflet.markercluster/dist/MarkerCluster.css', () => ({}))
 vi.mock('leaflet.markercluster/dist/MarkerCluster.Default.css', () => ({}))
-vi.mock('@/api', () => ({ default: { get: vi.fn() } }))
+vi.mock('@/api', () => ({ default: { get: vi.fn(), patch: vi.fn() } }))
 
 // ── Rendering tests ───────────────────────────────────────────────────────────
 
@@ -290,6 +293,48 @@ describe('MapView — logic', () => {
     await flushPromises()
     const removeCalls = mockMap.removeLayer.mock.calls.filter((c) => c[0] === mockPolyline)
     expect(removeCalls).toHaveLength(2)
+  })
+
+  it('map click in placement mode patches photo and cancels placement', async () => {
+    vi.mocked(api.patch).mockResolvedValue({} as never)
+    vi.spyOn(photosStore, 'fetchPhotos').mockResolvedValue()
+    const placementStore = usePlacementStore()
+    placementStore.startPlacing(42)
+
+    const clickHandler = mockMap.on.mock.calls.find((c) => c[0] === 'click')?.[1] as (
+      e: unknown,
+    ) => Promise<void>
+    await clickHandler({ latlng: { lat: 44.0, lng: 6.0 } })
+    await flushPromises()
+
+    expect(api.patch).toHaveBeenCalledWith('/photos/42', { lat: 44.0, lon: 6.0 })
+    expect(placementStore.placingPhotoId).toBeNull()
+  })
+
+  it('map click outside placement mode does nothing', async () => {
+    vi.mocked(api.patch).mockResolvedValue({} as never)
+    const clickHandler = mockMap.on.mock.calls.find((c) => c[0] === 'click')?.[1] as (
+      e: unknown,
+    ) => Promise<void>
+    await clickHandler({ latlng: { lat: 44.0, lng: 6.0 } })
+    expect(api.patch).not.toHaveBeenCalled()
+  })
+
+  it('placing a photo sets crosshair cursor on map container', async () => {
+    const placementStore = usePlacementStore()
+    mockContainer.style.cursor = ''
+    placementStore.startPlacing(5)
+    await flushPromises()
+    expect(mockContainer.style.cursor).toBe('crosshair')
+  })
+
+  it('cancelling placement restores default cursor', async () => {
+    const placementStore = usePlacementStore()
+    placementStore.startPlacing(5)
+    await flushPromises()
+    placementStore.cancel()
+    await flushPromises()
+    expect(mockContainer.style.cursor).toBe('')
   })
 
   it('segments with fewer than two points are skipped', async () => {

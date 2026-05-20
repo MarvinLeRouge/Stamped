@@ -12,6 +12,7 @@ import api from '@/api'
 import { usePhotosStore } from '@/stores/photos'
 import { useQuestsStore } from '@/stores/quests'
 import { useLightboxStore } from '@/stores/lightbox'
+import { usePlacementStore } from '@/stores/placement'
 
 const TILE_URL = '/tiles/{z}/{x}/{y}.png'
 const TILE_ATTRIBUTION =
@@ -22,6 +23,7 @@ const ZOOM = 5
 const photosStore = usePhotosStore()
 const questsStore = useQuestsStore()
 const lightboxStore = useLightboxStore()
+const placementStore = usePlacementStore()
 
 const mapRef = ref<{ leafletObject: L.Map } | null>(null)
 let clusterGroup: L.MarkerClusterGroup | null = null
@@ -96,6 +98,14 @@ async function onMapReady(): Promise<void> {
   /* c8 ignore next */
   if (!map) return
 
+  map.on('click', async (e: L.LeafletMouseEvent) => {
+    if (placementStore.placingPhotoId === null) return
+    const { lat, lng } = e.latlng
+    await api.patch(`/photos/${placementStore.placingPhotoId}`, { lat, lon: lng })
+    placementStore.cancel()
+    await loadVisiblePhotos()
+  })
+
   map.on('moveend', loadVisiblePhotos)
 
   await Promise.all([photosStore.fetchPhotos(), questsStore.fetchQuests()])
@@ -149,6 +159,15 @@ async function loadVisiblePhotos(): Promise<void> {
   })
   refreshMarkers()
 }
+
+watch(
+  () => placementStore.placingPhotoId,
+  (id) => {
+    const map = mapRef.value?.leafletObject
+    if (!map) return
+    map.getContainer().style.cursor = id !== null ? 'crosshair' : ''
+  },
+)
 
 watch(
   () => questsStore.selectedQuestId,

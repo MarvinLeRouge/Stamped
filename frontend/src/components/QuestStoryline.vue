@@ -3,7 +3,9 @@ import { computed, nextTick, ref, watch } from 'vue'
 
 import api from '@/api'
 import { useLightboxStore } from '@/stores/lightbox'
+import { usePlacementStore } from '@/stores/placement'
 import { useQuestsStore } from '@/stores/quests'
+import { useStatusStore } from '@/stores/status'
 
 interface StorylinePhoto {
   id: number
@@ -14,6 +16,8 @@ interface StorylinePhoto {
 
 const questsStore = useQuestsStore()
 const lightboxStore = useLightboxStore()
+const placementStore = usePlacementStore()
+const statusStore = useStatusStore()
 
 const photos = ref<StorylinePhoto[]>([])
 const loading = ref(false)
@@ -67,11 +71,18 @@ function formatDate(capturedAt: string | null): string {
   })
 }
 
+async function deletePhoto(photoId: number): Promise<void> {
+  await api.delete(`/photos/${photoId}`)
+  photos.value = photos.value.filter((p) => p.id !== photoId)
+  await Promise.all([questsStore.fetchQuests(), statusStore.fetch()])
+}
+
 watch(
   () => questsStore.selectedQuestId,
   async (id) => {
     photos.value = []
     editing.value = false
+    placementStore.cancel()
     if (id === null) return
     loading.value = true
     try {
@@ -114,7 +125,12 @@ watch(
     <p v-else-if="photos.length === 0" class="storyline__msg">No photos.</p>
 
     <ul v-else class="storyline__list">
-      <li v-for="(photo, i) in photos" :key="photo.id" class="storyline__item">
+      <li
+        v-for="(photo, i) in photos"
+        :key="photo.id"
+        class="storyline__item"
+        :class="{ 'storyline__item--orphan': photo.is_orphan }"
+      >
         <span class="storyline__index">{{ i + 1 }}</span>
         <div class="storyline__thumb-wrap">
           <img
@@ -126,7 +142,29 @@ watch(
           />
           <div v-else class="storyline__thumb storyline__thumb--pending">…</div>
         </div>
-        <span class="storyline__date">{{ formatDate(photo.captured_at) }}</span>
+        <div class="storyline__info">
+          <span class="storyline__date">{{ formatDate(photo.captured_at) }}</span>
+          <div class="storyline__actions">
+            <button
+              class="storyline__action-btn storyline__action-btn--pin"
+              :class="{
+                'storyline__action-btn--active': placementStore.placingPhotoId === photo.id,
+                'storyline__action-btn--placed': !photo.is_orphan,
+              }"
+              title="Place on map"
+              @click="placementStore.startPlacing(photo.id)"
+            >
+              📍
+            </button>
+            <button
+              class="storyline__action-btn storyline__action-btn--danger"
+              title="Delete photo"
+              @click="deletePhoto(photo.id)"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
       </li>
     </ul>
   </aside>
@@ -210,6 +248,11 @@ watch(
   gap: 0.5rem;
   padding: 0.4rem 0.6rem;
   border-bottom: 1px solid #1e1e38;
+  border-left: 3px solid transparent;
+}
+
+.storyline__item--orphan {
+  border-left-color: #f59e0b;
 }
 
 .storyline__index {
@@ -247,10 +290,74 @@ watch(
   cursor: default;
 }
 
+.storyline__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
 .storyline__date {
   font-size: 0.65rem;
   color: #999;
   line-height: 1.3;
   word-break: break-all;
+}
+
+.storyline__actions {
+  display: flex;
+  gap: 0.2rem;
+}
+
+.storyline__action-btn {
+  background: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-size: 0.75rem;
+  width: 1.4rem;
+  height: 1.4rem;
+  padding: 0;
+  border-radius: 50%;
+  opacity: 0.5;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition:
+    opacity 0.15s,
+    border-color 0.15s;
+}
+
+.storyline__action-btn:hover {
+  opacity: 1;
+}
+
+.storyline__action-btn--pin:hover {
+  border-color: #c0392b;
+  background: #2a1a1e;
+}
+
+.storyline__action-btn--pin.storyline__action-btn--placed {
+  opacity: 1;
+}
+
+.storyline__action-btn--active {
+  opacity: 1;
+  background: #3b1a22;
+  border-color: #c0392b;
+}
+
+.storyline__action-btn--danger {
+  color: #e06c75;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.storyline__action-btn--danger:hover {
+  background: #2a1a1e;
+  border-color: #c0392b;
+  color: #ff6b6b;
 }
 </style>

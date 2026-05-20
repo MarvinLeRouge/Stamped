@@ -450,3 +450,166 @@ def test_patch_quest_returns_full_quest_shape(tmp_path: Path) -> None:
         }
     finally:
         app.dependency_overrides.clear()
+
+
+# ── POST /api/quests/{id}/place ───────────────────────────────────────────────
+
+
+def _place_client(tmp_path: Path) -> tuple[TestClient, int]:
+    """Quest with 3 orphan photos and 3 trackpoints for median test."""
+    init_db()
+
+    with get_connection() as conn:
+        conn.execute(
+            "INSERT INTO quests (auto_name, started_at, ended_at, photo_count, has_gpx)"
+            " VALUES ('Q', '2024-06-01T08:00:00Z', '2024-06-01T10:00:00Z', 3, 1)"
+        )
+        quest_id: int = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+
+        conn.execute(
+            "INSERT INTO gpx_files (quest_id, file_path, file_hash) VALUES (?, 'a.gpx', 'hh')",
+            (quest_id,),
+        )
+        gpx_id: int = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+        conn.executemany(
+            "INSERT INTO gpx_trackpoints (gpx_file_id, recorded_at, lat, lon) VALUES (?,?,?,?)",
+            [
+                (gpx_id, "2024-06-01T08:00:00Z", 44.0, 6.0),
+                (gpx_id, "2024-06-01T09:00:00Z", 45.0, 7.0),  # median
+                (gpx_id, "2024-06-01T10:00:00Z", 46.0, 8.0),
+            ],
+        )
+        conn.executemany(
+            "INSERT INTO photos (file_path, file_hash, captured_at, thumb_status, quest_id, is_orphan)"
+            " VALUES (?, ?, ?, 'done', ?, 1)",
+            [
+                ("/a.jpg", "ha", "2024-06-01T08:30:00Z", quest_id),
+                ("/b.jpg", "hb", "2024-06-01T09:30:00Z", quest_id),
+                ("/c.jpg", "hc", "2024-06-01T09:45:00Z", quest_id),
+            ],
+        )
+        conn.commit()
+
+    def _override_db() -> Generator[sqlite3.Connection, None, None]:
+        with get_connection() as conn:
+            yield conn
+
+    app.dependency_overrides[get_db] = _override_db
+    return TestClient(app), quest_id
+
+
+def test_place_unknown_quest_returns_404(tmp_path: Path) -> None:
+    init_db()
+    r = TestClient(app).post("/api/quests/999/place", json={})
+    assert r.status_code == 404
+
+
+def test_place_no_gps_no_body_returns_422(tmp_path: Path) -> None:
+    c = _seeded_client(tmp_path)
+    try:
+        quest_id = c.get("/api/quests").json()[0]["id"]
+        r = c.post(f"/api/quests/{quest_id}/place", json={})
+        assert r.status_code == 422
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_place_explicit_coords_places_all_orphans(tmp_path: Path) -> None:
+    c, quest_id = _place_client(tmp_path)
+    try:
+        r = c.post(f"/api/quests/{quest_id}/place", json={"lat": 43.0, "lon": 5.5})
+        assert r.status_code == 200
+        assert r.json()["placed"] == 3
+        assert r.json()["lat"] == pytest.approx(43.0)
+        assert r.json()["lon"] == pytest.approx(5.5)
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_place_median_from_geolocated_photos(tmp_path: Path) -> None:
+    """_median_point falls back to geolocated photos when no trackpoints exist."""
+    init_db()
+
+    with get_connection() as conn:
+        conn.execute(
+            "INSERT INTO quests (auto_name, started_at, ended_at, photo_count, has_gpx)"
+            " VALUES ('Q', '2024-06-01T08:00:00Z', '2024-06-01T10:00:00Z', 1, 0)"
+        )
+        quest_id: int = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+        conn.execute(
+            "INSERT INTO photos (file_path, file_hash, captured_at, thumb_status, quest_id,"
+            " is_orphan, lat, lon) VALUES ('p.jpg', 'hq', '2024-06-01T09:00:00Z', 'done', ?, 0,"
+            " 43.0, 5.5)",
+            (quest_id,),
+        )
+        conn.execute(
+            "INSERT INTO photos (file_path, file_hash, captured_at, thumb_status, quest_id,"
+            " is_orphan) VALUES ('o.jpg', 'ho', '2024-06-01T08:00:00Z', 'done', ?, 1)",
+            (quest_id,),
+        )
+        conn.commit()
+
+    def _override_db() -> Generator[sqlite3.Connection, None, None]:
+        with get_connection() as conn:
+            yield conn
+
+    app.dependency_overrides[get_db] = _override_db
+    try:
+        c = TestClient(app)
+        r = c.post(f"/api/quests/{quest_id}/place", json={})
+        assert r.status_code == 200
+        assert r.json()["lat"] == pytest.approx(43.0)
+        assert r.json()["lon"] == pytest.approx(5.5)
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_place_median_from_trackpoints(tmp_path: Path) -> None:
+    c, quest_id = _place_client(tmp_path)
+    try:
+        r = c.post(f"/api/quests/{quest_id}/place", json={})
+        assert r.status_code == 200
+        assert r.json()["placed"] == 3
+        assert r.json()["lat"] == pytest.approx(45.0)
+        assert r.json()["lon"] == pytest.approx(7.0)
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_place_clears_orphan_flag(tmp_path: Path) -> None:
+    c, quest_id = _place_client(tmp_path)
+    try:
+        c.post(f"/api/quests/{quest_id}/place", json={"lat": 44.0, "lon": 6.0})
+        with get_connection() as conn:
+            remaining = conn.execute(
+                "SELECT COUNT(*) FROM photos WHERE quest_id = ? AND is_orphan = 1", (quest_id,)
+            ).fetchone()[0]
+        assert remaining == 0
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_place_already_placed_quest_places_zero(tmp_path: Path) -> None:
+    c, quest_id = _place_client(tmp_path)
+    try:
+        c.post(f"/api/quests/{quest_id}/place", json={"lat": 44.0, "lon": 6.0})
+        r = c.post(f"/api/quests/{quest_id}/place", json={"lat": 44.0, "lon": 6.0})
+        assert r.json()["placed"] == 0
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_place_updates_quest_bbox(tmp_path: Path) -> None:
+    c, quest_id = _place_client(tmp_path)
+    try:
+        c.post(f"/api/quests/{quest_id}/place", json={"lat": 44.0, "lon": 6.0})
+        with get_connection() as conn:
+            row = conn.execute(
+                "SELECT bbox_lat_min, bbox_lat_max, bbox_lon_min, bbox_lon_max"
+                " FROM quests WHERE id = ?",
+                (quest_id,),
+            ).fetchone()
+        assert row["bbox_lat_min"] is not None
+        assert row["bbox_lat_max"] is not None
+    finally:
+        app.dependency_overrides.clear()

@@ -137,6 +137,5 @@ def test_pipeline_updates_system_state(tmp_path: Path) -> None:
             time.sleep(0.1)
 
     with get_connection() as conn:
-        val = conn.execute("SELECT value FROM system_state WHERE key = 'photos_total'").fetchone()
+        val = conn.execute("SELECT value FROM system_state WHERE key = 'last_index_at'").fetchone()
     assert val is not None
-    assert int(val[0]) >= 1

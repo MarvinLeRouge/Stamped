@@ -21,6 +21,11 @@ class PhotoSummary(BaseModel):
     is_orphan: bool
 
 
+class PhotoPatch(BaseModel):
+    lat: float
+    lon: float
+
+
 @router.get("/photos", response_model=list[PhotoSummary])
 def list_photos(
     conn: Annotated[sqlite3.Connection, Depends(get_db)],
@@ -95,6 +100,36 @@ def _get_photo_or_404(conn: sqlite3.Connection, photo_id: int) -> sqlite3.Row:
     return row
 
 
+@router.patch("/photos/{photo_id}", response_model=PhotoSummary)
+def patch_photo(
+    photo_id: int,
+    body: PhotoPatch,
+    conn: Annotated[sqlite3.Connection, Depends(get_db)],
+) -> PhotoSummary:
+    row = conn.execute("SELECT id FROM photos WHERE id = ?", (photo_id,)).fetchone()
+    if row is None:
+        raise HTTPException(status_code=404, detail="Photo not found")
+    conn.execute(
+        "UPDATE photos SET lat = ?, lon = ?, is_orphan = 0 WHERE id = ?",
+        (body.lat, body.lon, photo_id),
+    )
+    conn.commit()
+    r = conn.execute(
+        "SELECT id, lat, lon, captured_at, thumb_status, quest_id, is_orphan"
+        " FROM photos WHERE id = ?",
+        (photo_id,),
+    ).fetchone()
+    return PhotoSummary(
+        id=r["id"],
+        lat=r["lat"],
+        lon=r["lon"],
+        captured_at=r["captured_at"],
+        thumb_status=r["thumb_status"],
+        quest_id=r["quest_id"],
+        is_orphan=bool(r["is_orphan"]),
+    )
+
+
 @router.get("/photos/{photo_id}/original")
 async def get_original(
     photo_id: int,
@@ -118,6 +153,45 @@ async def get_thumbnail(
         status_code=202,
         headers={"X-Thumb-Status": row["thumb_status"] or "pending"},
     )
+
+
+@router.delete("/photos/{photo_id}", status_code=204)
+def delete_photo(
+    photo_id: int,
+    conn: Annotated[sqlite3.Connection, Depends(get_db)],
+) -> None:
+    row = conn.execute(
+        "SELECT file_hash, thumb_path, quest_id FROM photos WHERE id = ?", (photo_id,)
+    ).fetchone()
+    if row is None:
+        raise HTTPException(status_code=404, detail="Photo not found")
+
+    conn.execute("INSERT OR IGNORE INTO deleted_photos (file_hash) VALUES (?)", (row["file_hash"],))
+    conn.execute("DELETE FROM photos WHERE id = ?", (photo_id,))
+
+    if row["quest_id"] is not None:
+        conn.execute(
+            "UPDATE quests SET photo_count = (SELECT COUNT(*) FROM photos WHERE quest_id = ?)"
+            " WHERE id = ?",
+            (row["quest_id"], row["quest_id"]),
+        )
+        conn.execute(
+            """UPDATE quests SET
+                bbox_lat_min = (SELECT MIN(lat) FROM photos WHERE quest_id = ? AND lat IS NOT NULL),
+                bbox_lat_max = (SELECT MAX(lat) FROM photos WHERE quest_id = ? AND lat IS NOT NULL),
+                bbox_lon_min = (SELECT MIN(lon) FROM photos WHERE quest_id = ? AND lon IS NOT NULL),
+                bbox_lon_max = (SELECT MAX(lon) FROM photos WHERE quest_id = ? AND lon IS NOT NULL)
+            WHERE id = ?""",
+            (row["quest_id"], row["quest_id"], row["quest_id"], row["quest_id"], row["quest_id"]),
+        )
+    conn.commit()
+
+    if row["thumb_path"]:
+        import pathlib
+
+        thumb = pathlib.Path(row["thumb_path"])
+        if thumb.exists():
+            thumb.unlink()
 
 
 def _priority_task(photo_id: int) -> None:
