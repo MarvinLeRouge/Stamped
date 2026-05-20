@@ -6,11 +6,17 @@ import MapView from '../MapView.vue'
 import { usePhotosStore } from '@/stores/photos'
 import { useQuestsStore } from '@/stores/quests'
 import { usePlacementStore } from '@/stores/placement'
+import { useHighlightStore } from '@/stores/highlight'
 import api from '@/api'
 
 // ── Leaflet mocks ─────────────────────────────────────────────────────────────
 
-const mockMarker = { bindPopup: vi.fn().mockReturnThis(), on: vi.fn() }
+const mockMarkerEl = { classList: { add: vi.fn(), remove: vi.fn() } }
+const mockMarker = {
+  bindPopup: vi.fn().mockReturnThis(),
+  on: vi.fn(),
+  getElement: vi.fn(() => mockMarkerEl),
+}
 const mockCluster = { addLayer: vi.fn() }
 const mockContainer = { style: { cursor: '' } }
 const mockMap = {
@@ -335,6 +341,51 @@ describe('MapView — logic', () => {
     placementStore.cancel()
     await flushPromises()
     expect(mockContainer.style.cursor).toBe('')
+  })
+
+  it('highlighting a photo adds CSS class to its marker element', async () => {
+    vi.spyOn(photosStore, 'fetchPhotos').mockResolvedValue()
+    photosStore.photos = [
+      {
+        id: 7,
+        lat: 44.0,
+        lon: 6.0,
+        captured_at: null,
+        thumb_status: 'done',
+        quest_id: null,
+        is_orphan: false,
+      },
+    ]
+    wrapper.findComponent({ name: 'LMap' }).vm.$emit('ready')
+    await flushPromises()
+    const highlightStore = useHighlightStore()
+    highlightStore.highlight(7)
+    await flushPromises()
+    expect(mockMarkerEl.classList.add).toHaveBeenCalledWith('marker--highlighted')
+  })
+
+  it('un-highlighting removes CSS class from previous marker', async () => {
+    vi.spyOn(photosStore, 'fetchPhotos').mockResolvedValue()
+    photosStore.photos = [
+      {
+        id: 7,
+        lat: 44.0,
+        lon: 6.0,
+        captured_at: null,
+        thumb_status: 'done',
+        quest_id: null,
+        is_orphan: false,
+      },
+    ]
+    wrapper.findComponent({ name: 'LMap' }).vm.$emit('ready')
+    await flushPromises()
+    const highlightStore = useHighlightStore()
+    highlightStore.highlight(7)
+    await flushPromises()
+    mockMarkerEl.classList.remove.mockClear()
+    highlightStore.highlight(null)
+    await flushPromises()
+    expect(mockMarkerEl.classList.remove).toHaveBeenCalledWith('marker--highlighted')
   })
 
   it('segments with fewer than two points are skipped', async () => {

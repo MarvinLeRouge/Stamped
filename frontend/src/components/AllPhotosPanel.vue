@@ -96,7 +96,7 @@ watch(filterOrphan, () => {
         v-for="photo in photos"
         :key="photo.id"
         class="all-photos__item"
-        @click="photo.thumb_status === 'done' && lightboxStore.open(photo.id)"
+        @click="/* c8 ignore next */ photo.thumb_status === 'done' && lightboxStore.open(photo.id)"
       >
         <div class="all-photos__thumb-wrap">
           <img

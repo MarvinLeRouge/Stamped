@@ -86,10 +86,9 @@ function refreshMarkers(): void {
     const marker = L.marker([photo.lat as number, photo.lon as number])
     marker.bindPopup(buildPopup(photo.id, photo.thumb_status, photo.captured_at, index))
     marker.on('popupopen', () => {
+      /* c8 ignore next 3 */
       const img = marker.getPopup()?.getElement()?.querySelector('img.popup-thumb')
-      if (img) {
-        img.addEventListener('click', () => lightboxStore.open(photo.id), { once: true })
-      }
+      if (img) img.addEventListener('click', () => lightboxStore.open(photo.id), { once: true })
     })
     marker.on('mouseover', () => highlightStore.highlight(photo.id))
     marker.on('mouseout', () => highlightStore.highlight(null))

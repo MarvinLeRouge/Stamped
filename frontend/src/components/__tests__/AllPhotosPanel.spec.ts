@@ -58,12 +58,37 @@ describe('AllPhotosPanel', () => {
     expect(wrapper.find('.all-photos__tag--noquest').exists()).toBe(true)
   })
 
-  it('filter button changes request params', async () => {
+  it('filter "placed" adds orphan=false param', async () => {
     useQuestsStore().showAllPhotos = true
     await flushPromises()
     await wrapper.find('.all-photos__filter:nth-child(2)').trigger('click')
     await flushPromises()
     expect(vi.mocked(api.get).mock.calls.at(-1)?.[0]).toContain('orphan=false')
+  })
+
+  it('filter "orphan" adds orphan=true param', async () => {
+    useQuestsStore().showAllPhotos = true
+    await flushPromises()
+    await wrapper.find('.all-photos__filter:nth-child(3)').trigger('click')
+    await flushPromises()
+    expect(vi.mocked(api.get).mock.calls.at(-1)?.[0]).toContain('orphan=true')
+  })
+
+  it('filter "all" removes orphan param', async () => {
+    useQuestsStore().showAllPhotos = true
+    await flushPromises()
+    await wrapper.find('.all-photos__filter:nth-child(3)').trigger('click')
+    await flushPromises()
+    await wrapper.find('.all-photos__filter:nth-child(1)').trigger('click')
+    await flushPromises()
+    const lastCall = vi.mocked(api.get).mock.calls.at(-1)?.[0] as string
+    expect(lastCall).not.toContain('orphan=')
+  })
+
+  it('renders pending placeholder for non-done photos', async () => {
+    useQuestsStore().showAllPhotos = true
+    await flushPromises()
+    expect(wrapper.find('.all-photos__thumb--pending').exists()).toBe(true)
   })
 
   it('shows empty message when no photos', async () => {

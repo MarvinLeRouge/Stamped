@@ -61,6 +61,15 @@ describe('UnquestedPanel', () => {
     expect(wrapper.text()).toContain('No photos')
   })
 
+  it('clicking thumbnail opens lightbox', async () => {
+    const { useLightboxStore } = await import('@/stores/lightbox')
+    const lightboxStore = useLightboxStore()
+    useQuestsStore().showUnquested = true
+    await flushPromises()
+    await wrapper.find('img.unquested__thumb').trigger('click')
+    expect(lightboxStore.photoId).toBe(PHOTOS[0]!.id)
+  })
+
   it('clicking place button activates placement mode', async () => {
     useQuestsStore().showUnquested = true
     await flushPromises()
