@@ -66,6 +66,16 @@ def test_import_directory_skips_duplicate_hash(tmp_path: Path, db_conn: sqlite3.
     assert result.indexed == 0
 
 
+def test_import_directory_skips_deleted_photo(tmp_path: Path, db_conn: sqlite3.Connection) -> None:
+    jpeg = make_jpeg(tmp_path / "photo.jpg", lat=45.0, lon=6.0)
+    file_hash = compute_hash(jpeg)
+    db_conn.execute("INSERT INTO deleted_photos (file_hash) VALUES (?)", (file_hash,))
+    db_conn.commit()
+    result = import_directory(tmp_path, db_conn)
+    assert result.skipped == 1
+    assert result.indexed == 0
+
+
 def test_import_directory_writes_correct_thumb_status(
     tmp_path: Path, db_conn: sqlite3.Connection
 ) -> None:

@@ -42,8 +42,10 @@ def compute_hash(path: Path) -> str:
 
 
 def _hash_exists(conn: sqlite3.Connection, file_hash: str) -> bool:
-    row = conn.execute("SELECT 1 FROM photos WHERE file_hash = ?", (file_hash,)).fetchone()
-    return row is not None
+    return bool(
+        conn.execute("SELECT 1 FROM photos WHERE file_hash = ?", (file_hash,)).fetchone()
+        or conn.execute("SELECT 1 FROM deleted_photos WHERE file_hash = ?", (file_hash,)).fetchone()
+    )
 
 
 def _insert_photo(

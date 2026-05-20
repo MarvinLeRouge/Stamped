@@ -5,9 +5,10 @@ import { mount, flushPromises } from '@vue/test-utils'
 import QuestStoryline from '../QuestStoryline.vue'
 import { useQuestsStore } from '@/stores/quests'
 import { useLightboxStore } from '@/stores/lightbox'
+import { usePlacementStore } from '@/stores/placement'
 import api from '@/api'
 
-vi.mock('@/api', () => ({ default: { get: vi.fn(), patch: vi.fn() } }))
+vi.mock('@/api', () => ({ default: { get: vi.fn(), patch: vi.fn(), delete: vi.fn() } }))
 
 const PHOTOS = [
   { id: 1, captured_at: '2024-06-01T08:10:00Z', thumb_status: 'done', is_orphan: false },
@@ -101,6 +102,34 @@ describe('QuestStoryline', () => {
     store.selectedQuestId = 2
     await flushPromises()
     expect(wrapper.findAll('.storyline__item')).toHaveLength(1)
+  })
+
+  it('clicking delete button removes photo from list', async () => {
+    vi.mocked(api.delete).mockResolvedValue({})
+    useQuestsStore().selectedQuestId = 1
+    await flushPromises()
+    await wrapper.find('.storyline__action-btn--danger').trigger('click')
+    await flushPromises()
+    expect(wrapper.findAll('.storyline__item')).toHaveLength(1)
+  })
+
+  it('clicking place button activates placement mode', async () => {
+    const placementStore = usePlacementStore()
+    useQuestsStore().selectedQuestId = 1
+    await flushPromises()
+    await wrapper.find('.storyline__action-btn').trigger('click')
+    expect(placementStore.placingPhotoId).toBe(PHOTOS[0]!.id)
+  })
+
+  it('deselecting quest cancels placement mode', async () => {
+    const store = useQuestsStore()
+    const placementStore = usePlacementStore()
+    store.selectedQuestId = 1
+    await flushPromises()
+    placementStore.startPlacing(PHOTOS[0]!.id)
+    store.selectedQuestId = null
+    await flushPromises()
+    expect(placementStore.placingPhotoId).toBeNull()
   })
 })
 

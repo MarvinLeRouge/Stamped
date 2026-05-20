@@ -155,6 +155,45 @@ async def get_thumbnail(
     )
 
 
+@router.delete("/photos/{photo_id}", status_code=204)
+def delete_photo(
+    photo_id: int,
+    conn: Annotated[sqlite3.Connection, Depends(get_db)],
+) -> None:
+    row = conn.execute(
+        "SELECT file_hash, thumb_path, quest_id FROM photos WHERE id = ?", (photo_id,)
+    ).fetchone()
+    if row is None:
+        raise HTTPException(status_code=404, detail="Photo not found")
+
+    conn.execute("INSERT OR IGNORE INTO deleted_photos (file_hash) VALUES (?)", (row["file_hash"],))
+    conn.execute("DELETE FROM photos WHERE id = ?", (photo_id,))
+
+    if row["quest_id"] is not None:
+        conn.execute(
+            "UPDATE quests SET photo_count = (SELECT COUNT(*) FROM photos WHERE quest_id = ?)"
+            " WHERE id = ?",
+            (row["quest_id"], row["quest_id"]),
+        )
+        conn.execute(
+            """UPDATE quests SET
+                bbox_lat_min = (SELECT MIN(lat) FROM photos WHERE quest_id = ? AND lat IS NOT NULL),
+                bbox_lat_max = (SELECT MAX(lat) FROM photos WHERE quest_id = ? AND lat IS NOT NULL),
+                bbox_lon_min = (SELECT MIN(lon) FROM photos WHERE quest_id = ? AND lon IS NOT NULL),
+                bbox_lon_max = (SELECT MAX(lon) FROM photos WHERE quest_id = ? AND lon IS NOT NULL)
+            WHERE id = ?""",
+            (row["quest_id"], row["quest_id"], row["quest_id"], row["quest_id"], row["quest_id"]),
+        )
+    conn.commit()
+
+    if row["thumb_path"]:
+        import pathlib
+
+        thumb = pathlib.Path(row["thumb_path"])
+        if thumb.exists():
+            thumb.unlink()
+
+
 def _priority_task(photo_id: int) -> None:
     with get_connection() as conn:
         process_priority_thumb(conn, photo_id)

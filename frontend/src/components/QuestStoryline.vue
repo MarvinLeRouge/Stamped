@@ -3,6 +3,7 @@ import { computed, nextTick, ref, watch } from 'vue'
 
 import api from '@/api'
 import { useLightboxStore } from '@/stores/lightbox'
+import { usePlacementStore } from '@/stores/placement'
 import { useQuestsStore } from '@/stores/quests'
 
 interface StorylinePhoto {
@@ -14,6 +15,7 @@ interface StorylinePhoto {
 
 const questsStore = useQuestsStore()
 const lightboxStore = useLightboxStore()
+const placementStore = usePlacementStore()
 
 const photos = ref<StorylinePhoto[]>([])
 const loading = ref(false)
@@ -67,11 +69,17 @@ function formatDate(capturedAt: string | null): string {
   })
 }
 
+async function deletePhoto(photoId: number): Promise<void> {
+  await api.delete(`/photos/${photoId}`)
+  photos.value = photos.value.filter((p) => p.id !== photoId)
+}
+
 watch(
   () => questsStore.selectedQuestId,
   async (id) => {
     photos.value = []
     editing.value = false
+    placementStore.cancel()
     if (id === null) return
     loading.value = true
     try {
@@ -126,7 +134,28 @@ watch(
           />
           <div v-else class="storyline__thumb storyline__thumb--pending">…</div>
         </div>
-        <span class="storyline__date">{{ formatDate(photo.captured_at) }}</span>
+        <div class="storyline__info">
+          <span class="storyline__date">{{ formatDate(photo.captured_at) }}</span>
+          <div class="storyline__actions">
+            <button
+              class="storyline__action-btn"
+              :class="{
+                'storyline__action-btn--active': placementStore.placingPhotoId === photo.id,
+              }"
+              title="Place on map"
+              @click="placementStore.startPlacing(photo.id)"
+            >
+              📍
+            </button>
+            <button
+              class="storyline__action-btn storyline__action-btn--danger"
+              title="Delete photo"
+              @click="deletePhoto(photo.id)"
+            >
+              🗑
+            </button>
+          </div>
+        </div>
       </li>
     </ul>
   </aside>
@@ -247,10 +276,48 @@ watch(
   cursor: default;
 }
 
+.storyline__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
 .storyline__date {
   font-size: 0.65rem;
   color: #999;
   line-height: 1.3;
   word-break: break-all;
+}
+
+.storyline__actions {
+  display: flex;
+  gap: 0.2rem;
+}
+
+.storyline__action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 1px 3px;
+  border-radius: 3px;
+  opacity: 0.5;
+  line-height: 1;
+}
+
+.storyline__action-btn:hover {
+  opacity: 1;
+  background: #2a2a4e;
+}
+
+.storyline__action-btn--active {
+  opacity: 1;
+  background: #3b3b6e;
+}
+
+.storyline__action-btn--danger:hover {
+  background: #4a1a1a;
 }
 </style>

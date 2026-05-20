@@ -12,6 +12,7 @@ import api from '@/api'
 import { usePhotosStore } from '@/stores/photos'
 import { useQuestsStore } from '@/stores/quests'
 import { useLightboxStore } from '@/stores/lightbox'
+import { usePlacementStore } from '@/stores/placement'
 
 const TILE_URL = '/tiles/{z}/{x}/{y}.png'
 const TILE_ATTRIBUTION =
@@ -22,6 +23,7 @@ const ZOOM = 5
 const photosStore = usePhotosStore()
 const questsStore = useQuestsStore()
 const lightboxStore = useLightboxStore()
+const placementStore = usePlacementStore()
 
 const mapRef = ref<{ leafletObject: L.Map } | null>(null)
 let clusterGroup: L.MarkerClusterGroup | null = null
@@ -95,6 +97,14 @@ async function onMapReady(): Promise<void> {
   const map = mapRef.value?.leafletObject
   /* c8 ignore next */
   if (!map) return
+
+  map.on('click', async (e: L.LeafletMouseEvent) => {
+    if (placementStore.placingPhotoId === null) return
+    const { lat, lng } = e.latlng
+    await api.patch(`/photos/${placementStore.placingPhotoId}`, { lat, lon: lng })
+    placementStore.cancel()
+    await loadVisiblePhotos()
+  })
 
   map.on('moveend', loadVisiblePhotos)
 
@@ -180,7 +190,13 @@ watch(
 </script>
 
 <template>
-  <l-map ref="mapRef" :zoom="ZOOM" :center="CENTER" class="map" @ready="onMapReady">
+  <l-map
+    ref="mapRef"
+    :zoom="ZOOM"
+    :center="CENTER"
+    :class="['map', { 'map--placing': placementStore.placingPhotoId !== null }]"
+    @ready="onMapReady"
+  >
     <l-tile-layer :url="TILE_URL" :attribution="TILE_ATTRIBUTION" layer-type="base" />
   </l-map>
 </template>
@@ -189,6 +205,10 @@ watch(
 .map {
   height: 100%;
   width: 100%;
+}
+
+.map--placing {
+  cursor: crosshair !important;
 }
 </style>
 
