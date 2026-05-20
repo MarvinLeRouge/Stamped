@@ -92,14 +92,18 @@ watch(filterOrphan, () => {
     <p v-else-if="photos.length === 0" class="all-photos__msg">No photos.</p>
 
     <ul v-else class="all-photos__list">
-      <li v-for="photo in photos" :key="photo.id" class="all-photos__item">
+      <li
+        v-for="photo in photos"
+        :key="photo.id"
+        class="all-photos__item"
+        @click="photo.thumb_status === 'done' && lightboxStore.open(photo.id)"
+      >
         <div class="all-photos__thumb-wrap">
           <img
             v-if="photo.thumb_status === 'done'"
             :src="`/api/photos/${photo.id}/thumb`"
             class="all-photos__thumb"
             alt="photo"
-            @click="lightboxStore.open(photo.id)"
           />
           <div v-else class="all-photos__thumb all-photos__thumb--pending">…</div>
         </div>
@@ -188,6 +192,12 @@ watch(filterOrphan, () => {
   gap: 0.5rem;
   padding: 0.4rem 0.6rem;
   border-bottom: 1px solid #1a1a30;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.all-photos__item:hover {
+  background: #1e1e3a;
 }
 
 .all-photos__thumb-wrap {
