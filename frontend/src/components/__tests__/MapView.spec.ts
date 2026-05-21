@@ -87,7 +87,7 @@ describe('MapView — rendering', () => {
 
   it('passes the correct tile URL for the active layer', () => {
     const tile = mount(MapView).findComponent({ name: 'LTileLayer' })
-    expect(tile.props('url')).toContain('/api/tiles/osm/')
+    expect(tile.props('url')).toContain('/tiles/osm/')
   })
 })
 

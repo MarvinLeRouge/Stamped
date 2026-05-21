@@ -35,7 +35,7 @@ export const useLayerStore = defineStore('layer', () => {
 
   const activeLayer = computed(() => LAYERS.find((l) => l.id === activeLayerId.value)!)
 
-  const tileUrl = computed(() => `/api/tiles/${activeLayerId.value}/{z}/{x}/{y}`)
+  const tileUrl = computed(() => `/tiles/${activeLayerId.value}/{z}/{x}/{y}`)
 
   function setLayer(id: LayerId): void {
     activeLayerId.value = id
