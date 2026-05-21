@@ -107,4 +107,33 @@ describe('ElevationPanel', () => {
     await wrapper.find('svg').trigger('mouseleave')
     expect(highlightStore.hoveredTimestamp).toBeNull()
   })
+
+  it('hoveredTimestamp matching a point sets highlightedX', async () => {
+    const store = useElevationStore()
+    const highlightStore = useHighlightStore()
+    store.setPoints(POINTS)
+    store.visible = true
+    await flushPromises()
+    // Set timestamp matching the second point (d=500) — triggers highlightedX computed
+    highlightStore.highlight(null, '2024-06-01T08:10:00Z')
+    await flushPromises()
+    // The storyline cursor line should be rendered
+    expect(wrapper.find('.elev-cursor--storyline').exists()).toBe(true)
+  })
+
+  it('mousemove sets hoverX and syncs highlight timestamp', async () => {
+    const store = useElevationStore()
+    const highlightStore = useHighlightStore()
+    store.setPoints(POINTS)
+    store.visible = true
+    await flushPromises()
+
+    const svg = wrapper.find('svg').element as SVGSVGElement
+    svg.getBoundingClientRect = () => ({ left: 0, top: 0, width: 800, height: 140 }) as DOMRect
+
+    await wrapper.find('svg').trigger('mousemove', { clientX: 400, clientY: 70 })
+    await flushPromises()
+
+    expect(highlightStore.hoveredTimestamp).not.toBeNull()
+  })
 })
