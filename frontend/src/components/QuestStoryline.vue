@@ -147,8 +147,8 @@ watch(
           'storyline__item--highlighted': highlightStore.hoveredPhotoId === photo.id,
         }"
         :data-photo-id="photo.id"
-        @mouseenter="highlightStore.highlight(photo.id)"
-        @mouseleave="highlightStore.highlight(null)"
+        @mouseenter="highlightStore.highlight(photo.id, photo.captured_at)"
+        @mouseleave="highlightStore.highlight(null, null)"
       >
         <span class="storyline__index">{{ i + 1 }}</span>
         <div class="storyline__thumb-wrap">

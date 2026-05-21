@@ -613,3 +613,112 @@ def test_place_updates_quest_bbox(tmp_path: Path) -> None:
         assert row["bbox_lat_max"] is not None
     finally:
         app.dependency_overrides.clear()
+
+
+# ── GET /api/quests/{id}/elevation ───────────────────────────────────────────
+
+
+def _elevation_client(tmp_path: Path) -> tuple[TestClient, int]:
+    """Quest with one GPX file containing 3 trackpoints with altitude."""
+    init_db()
+
+    with get_connection() as conn:
+        conn.execute(
+            "INSERT INTO quests (auto_name, started_at, ended_at, photo_count, has_gpx)"
+            " VALUES ('Q', '2024-06-01T08:00:00Z', '2024-06-01T10:00:00Z', 0, 1)"
+        )
+        quest_id: int = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+        conn.execute(
+            "INSERT INTO gpx_files (quest_id, file_path, file_hash) VALUES (?, 'a.gpx', 'hh')",
+            (quest_id,),
+        )
+        gpx_id: int = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+        conn.executemany(
+            "INSERT INTO gpx_trackpoints (gpx_file_id, recorded_at, lat, lon, alt)"
+            " VALUES (?,?,?,?,?)",
+            [
+                (gpx_id, "2024-06-01T08:00:00Z", 44.0, 6.0, 100.0),
+                (gpx_id, "2024-06-01T08:10:00Z", 44.001, 6.001, 150.0),
+                (gpx_id, "2024-06-01T08:20:00Z", 44.002, 6.002, 200.0),
+            ],
+        )
+        conn.commit()
+
+    def _override_db() -> Generator[sqlite3.Connection, None, None]:
+        with get_connection() as conn:
+            yield conn
+
+    app.dependency_overrides[get_db] = _override_db
+    return TestClient(app), quest_id
+
+
+def test_get_elevation_unknown_quest_returns_404(tmp_path: Path) -> None:
+    init_db()
+    r = TestClient(app).get("/api/quests/999/elevation")
+    assert r.status_code == 404
+
+
+def test_get_elevation_no_gpx_returns_empty(tmp_path: Path) -> None:
+    c = _seeded_client(tmp_path)
+    try:
+        quest_id = c.get("/api/quests").json()[0]["id"]
+        r = c.get(f"/api/quests/{quest_id}/elevation")
+        assert r.status_code == 200
+        assert r.json() == []
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_get_elevation_returns_correct_count(tmp_path: Path) -> None:
+    c, quest_id = _elevation_client(tmp_path)
+    try:
+        points = c.get(f"/api/quests/{quest_id}/elevation").json()
+        assert len(points) == 3
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_get_elevation_first_point_distance_zero(tmp_path: Path) -> None:
+    c, quest_id = _elevation_client(tmp_path)
+    try:
+        points = c.get(f"/api/quests/{quest_id}/elevation").json()
+        assert points[0]["d"] == 0.0
+        assert points[0]["alt"] == 100.0
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_get_elevation_distance_increases(tmp_path: Path) -> None:
+    c, quest_id = _elevation_client(tmp_path)
+    try:
+        points = c.get(f"/api/quests/{quest_id}/elevation").json()
+        assert points[1]["d"] > 0
+        assert points[2]["d"] > points[1]["d"]
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_get_elevation_has_timestamp(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from stamped.core.config import settings as cfg
+
+    monkeypatch.setattr(cfg, "camera_utc_offset_hours", 0)
+    c, quest_id = _elevation_client(tmp_path)
+    try:
+        points = c.get(f"/api/quests/{quest_id}/elevation").json()
+        assert points[0]["t"] == "2024-06-01T08:00:00Z"
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_get_elevation_timestamp_shifted_by_utc_offset(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from stamped.core.config import settings as cfg
+
+    monkeypatch.setattr(cfg, "camera_utc_offset_hours", 2)
+    c, quest_id = _elevation_client(tmp_path)
+    try:
+        points = c.get(f"/api/quests/{quest_id}/elevation").json()
+        assert points[0]["t"] == "2024-06-01T10:00:00Z"
+    finally:
+        app.dependency_overrides.clear()
