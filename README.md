@@ -234,12 +234,12 @@ After the first import of a geographic area, Stamped works entirely offline.
 - [x] Global photo browser — all photos with orphan status filter
 - [x] Alternative OSM layers (topo, satellite) — with filesystem tile cache per layer
 - [x] Elevation profile — collapsible panel below the map, SVG chart with distance axis, synced with storyline hover
-- [ ] Folder watch — automatic import on file change
-- [ ] RAW image support
 
 ### 🔜 v3 — Planned
 
 - [ ] **Quest macro timeline** — full-width animated view replacing the content area; quests positioned by chronological midpoint (day precision); fixed-width blocks stacked vertically by density (oldest on top); collapsed "N quests" blocks when capacity exceeded; mouse-wheel zoom; click returns to normal view
+- [ ] Folder watch — automatic import on file change
+- [ ] RAW image support
 - [ ] Export (JSON, filtered GPX)
 - [ ] Activity type tagging
 - [ ] Dark theme
