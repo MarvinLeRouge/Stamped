@@ -1,12 +1,14 @@
 import math
 import sqlite3
 import xml.etree.ElementTree as ET
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
 
+from stamped.core.config import settings
 from stamped.core.db import get_db
 
 router = APIRouter()
@@ -311,14 +313,22 @@ def get_quest_elevation(
     if not rows:
         return []
 
+    offset = timedelta(hours=settings.camera_utc_offset_hours)
+
+    def _to_local(recorded_at: str) -> str:
+        dt = datetime.strptime(recorded_at, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
+        return (dt + offset).strftime("%Y-%m-%dT%H:%M:%SZ")
+
     points: list[ElevationPoint] = []
     cumulative = 0.0
     prev = rows[0]
-    points.append(ElevationPoint(d=0.0, alt=prev["alt"], t=prev["recorded_at"]))
+    points.append(ElevationPoint(d=0.0, alt=prev["alt"], t=_to_local(prev["recorded_at"])))
 
     for row in rows[1:]:
         cumulative += _haversine(prev["lat"], prev["lon"], row["lat"], row["lon"])
-        points.append(ElevationPoint(d=round(cumulative, 1), alt=row["alt"], t=row["recorded_at"]))
+        points.append(
+            ElevationPoint(d=round(cumulative, 1), alt=row["alt"], t=_to_local(row["recorded_at"]))
+        )
         prev = row
 
     return points

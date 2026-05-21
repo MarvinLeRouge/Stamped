@@ -698,10 +698,27 @@ def test_get_elevation_distance_increases(tmp_path: Path) -> None:
         app.dependency_overrides.clear()
 
 
-def test_get_elevation_has_timestamp(tmp_path: Path) -> None:
+def test_get_elevation_has_timestamp(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from stamped.core.config import settings as cfg
+
+    monkeypatch.setattr(cfg, "camera_utc_offset_hours", 0)
     c, quest_id = _elevation_client(tmp_path)
     try:
         points = c.get(f"/api/quests/{quest_id}/elevation").json()
         assert points[0]["t"] == "2024-06-01T08:00:00Z"
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_get_elevation_timestamp_shifted_by_utc_offset(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from stamped.core.config import settings as cfg
+
+    monkeypatch.setattr(cfg, "camera_utc_offset_hours", 2)
+    c, quest_id = _elevation_client(tmp_path)
+    try:
+        points = c.get(f"/api/quests/{quest_id}/elevation").json()
+        assert points[0]["t"] == "2024-06-01T10:00:00Z"
     finally:
         app.dependency_overrides.clear()
