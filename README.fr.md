@@ -227,19 +227,19 @@ Après le premier import d'une zone géographique, Stamped fonctionne entièreme
 - [x] **Phase 6** — Gestion des orphelines (placement manuel, placement en masse, suppression, liste noire des hash)
 - [x] **Phase 7** — Layout desktop (CSS Grid, échelle typographique, nettoyage du boilerplate)
 
-### ✅ v2 — En cours
+### ✅ v2 — Livré
 
 - [x] Synchronisation storyline ↔ carte — survol d'une photo met en évidence le marqueur, et inversement
 - [x] Vue "Photos sans quest" — orphelines avec `quest_id = NULL`, avec actions de placement et suppression
 - [x] Explorateur global de photos — filtres statut orphelin
-- [ ] Couches OSM alternatives (topo, satellite) — avec tile-cache filesystem
-- [ ] Profil d'élévation dans la Storyline — design à valider avant implémentation
-- [ ] Vue timeline + carte synchronisée
-- [ ] Surveillance de dossier — import automatique à la détection de nouveaux fichiers
-- [ ] Support des fichiers RAW
+- [x] Couches OSM alternatives (topo, satellite) — avec tile-cache filesystem par couche
+- [x] Profil d'élévation — barre escamotable sous la carte, graphique SVG avec axe distance, synchronisé avec le survol de la Storyline
 
 ### 🔜 v3 — Prévu
 
+- [ ] **Timeline macro des quests** — vue pleine largeur animée remplaçant la zone content ; quests positionnées par point médian chronologique (précision jour) ; blocs à largeur fixe empilés verticalement par densité (la plus ancienne en haut) ; blocs condensés "N quests" si capacité dépassée ; zoom molette souris ; clic retour vue normale
+- [ ] Surveillance de dossier — import automatique à la détection de nouveaux fichiers
+- [ ] Support des fichiers RAW
 - [ ] Export (JSON, GPX filtré)
 - [ ] Tagging par type d'activité
 - [ ] Thème sombre
