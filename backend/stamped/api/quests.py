@@ -1,3 +1,4 @@
+import math
 import sqlite3
 import xml.etree.ElementTree as ET
 from typing import Annotated
@@ -272,6 +273,55 @@ def get_quest_gpx(
         media_type="application/gpx+xml",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+class ElevationPoint(BaseModel):
+    d: float
+    alt: float
+    t: str
+
+
+def _haversine(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    R = 6_371_000.0
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlambda = math.radians(lon2 - lon1)
+    a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
+    return 2 * R * math.asin(math.sqrt(a))
+
+
+@router.get("/quests/{quest_id}/elevation", response_model=list[ElevationPoint])
+def get_quest_elevation(
+    quest_id: int,
+    conn: Annotated[sqlite3.Connection, Depends(get_db)],
+) -> list[ElevationPoint]:
+    quest = conn.execute("SELECT id FROM quests WHERE id = ?", (quest_id,)).fetchone()
+    if quest is None:
+        raise HTTPException(status_code=404, detail="Quest not found")
+
+    rows = conn.execute(
+        "SELECT t.lat, t.lon, t.alt, t.recorded_at"
+        " FROM gpx_trackpoints t"
+        " JOIN gpx_files f ON f.id = t.gpx_file_id"
+        " WHERE f.quest_id = ? AND t.alt IS NOT NULL"
+        " ORDER BY t.recorded_at",
+        (quest_id,),
+    ).fetchall()
+
+    if not rows:
+        return []
+
+    points: list[ElevationPoint] = []
+    cumulative = 0.0
+    prev = rows[0]
+    points.append(ElevationPoint(d=0.0, alt=prev["alt"], t=prev["recorded_at"]))
+
+    for row in rows[1:]:
+        cumulative += _haversine(prev["lat"], prev["lon"], row["lat"], row["lon"])
+        points.append(ElevationPoint(d=round(cumulative, 1), alt=row["alt"], t=row["recorded_at"]))
+        prev = row
+
+    return points
 
 
 @router.get("/quests", response_model=list[QuestResponse])
