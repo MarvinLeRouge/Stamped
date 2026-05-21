@@ -248,7 +248,8 @@ watch(
 }
 
 .elev-cursor--storyline {
-  stroke: #6366f1;
+  stroke: #e2e8f0;
+  stroke-width: 1.5;
 }
 
 .elev-tooltip {
