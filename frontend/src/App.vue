@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import AllPhotosPanel from '@/components/AllPhotosPanel.vue'
+import LayerSelector from '@/components/LayerSelector.vue'
 import MapView from '@/components/MapView.vue'
 import PhotoLightbox from '@/components/PhotoLightbox.vue'
 import QuestList from '@/components/QuestList.vue'
@@ -32,6 +33,7 @@ const questsStore = useQuestsStore()
       <AllPhotosPanel />
       <main class="map-container">
         <MapView />
+        <LayerSelector />
       </main>
     </div>
     <PhotoLightbox />
@@ -93,5 +95,6 @@ body,
 .map-container {
   overflow: hidden;
   min-width: 0;
+  position: relative;
 }
 </style>

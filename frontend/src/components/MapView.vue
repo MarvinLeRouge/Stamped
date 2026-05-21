@@ -14,12 +14,11 @@ import { useQuestsStore } from '@/stores/quests'
 import { useLightboxStore } from '@/stores/lightbox'
 import { usePlacementStore } from '@/stores/placement'
 import { useHighlightStore } from '@/stores/highlight'
+import { useLayerStore } from '@/stores/layer'
 
-const TILE_URL = '/tiles/{z}/{x}/{y}.png'
-const TILE_ATTRIBUTION =
-  '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>'
 const CENTER: [number, number] = [46.8, 2.3]
 const ZOOM = 5
+const layerStore = useLayerStore()
 
 const photosStore = usePhotosStore()
 const questsStore = useQuestsStore()
@@ -218,7 +217,11 @@ watch(
 
 <template>
   <l-map ref="mapRef" :zoom="ZOOM" :center="CENTER" class="map" @ready="onMapReady">
-    <l-tile-layer :url="TILE_URL" :attribution="TILE_ATTRIBUTION" layer-type="base" />
+    <l-tile-layer
+      :url="layerStore.tileUrl"
+      :attribution="layerStore.activeLayer.attribution"
+      layer-type="base"
+    />
   </l-map>
 </template>
 

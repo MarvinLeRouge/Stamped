@@ -85,9 +85,9 @@ describe('MapView — rendering', () => {
     expect(map.props('center')).toEqual([46.8, 2.3])
   })
 
-  it('passes the correct tile URL', () => {
+  it('passes the correct tile URL for the active layer', () => {
     const tile = mount(MapView).findComponent({ name: 'LTileLayer' })
-    expect(tile.props('url')).toBe('/tiles/{z}/{x}/{y}.png')
+    expect(tile.props('url')).toContain('/api/tiles/osm/')
   })
 })
 
