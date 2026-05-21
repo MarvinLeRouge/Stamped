@@ -29,11 +29,11 @@ Chaque photo géolocalisée est une preuve de présence. Stamped traite votre co
 
 | Métrique | Valeur |
 |---|---|
-| Tests backend | **196 passants** |
-| Tests frontend | **86 passants** |
+| Tests backend | **208 passants** |
+| Tests frontend | **140 passants** |
 | Endpoints API | **19** |
 | Couverture backend | **99%** |
-| Couverture frontend | **97%** |
+| Couverture frontend | **96%** |
 | Étapes du pipeline d'import | **6** (EXIF · GPX · quests · interpolation GPS · élévation · thumbnails) |
 
 ---
@@ -257,8 +257,8 @@ Après le premier import d'une zone géographique, Stamped fonctionne entièreme
 | Carte | ![Leaflet](https://img.shields.io/badge/Leaflet-199900?logo=leaflet&logoColor=white&style=flat-square) + Leaflet.markercluster |
 | État | ![Pinia](https://img.shields.io/badge/Pinia-FFD859?logo=pinia&logoColor=black&style=flat-square) |
 | EXIF | Pillow |
-| Tests backend | ![pytest](https://img.shields.io/badge/pytest-0A9EDC?logo=pytest&logoColor=white&style=flat-square) — 196 tests, 99% couverture |
-| Tests frontend | ![Vitest](https://img.shields.io/badge/Vitest-6E9F18?logo=vitest&logoColor=white&style=flat-square) + Vue Test Utils — 86 tests, 97% couverture |
+| Tests backend | ![pytest](https://img.shields.io/badge/pytest-0A9EDC?logo=pytest&logoColor=white&style=flat-square) — 208 tests, 99% couverture |
+| Tests frontend | ![Vitest](https://img.shields.io/badge/Vitest-6E9F18?logo=vitest&logoColor=white&style=flat-square) + Vue Test Utils — 140 tests, 96% couverture |
 | Linting | ruff · mypy · ESLint · Prettier · vue-tsc |
 | CI | ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?logo=githubactions&logoColor=white&style=flat-square) ![Codecov](https://img.shields.io/badge/Codecov-F01F7A?logo=codecov&logoColor=white&style=flat-square) |
 

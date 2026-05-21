@@ -29,11 +29,11 @@ Each geotagged photo is evidence of presence. Stamped treats your collection as 
 
 | Metric | Value |
 |---|---|
-| Backend tests | **196 passing** |
-| Frontend tests | **86 passing** |
+| Backend tests | **208 passing** |
+| Frontend tests | **140 passing** |
 | API endpoints | **19** |
 | Backend coverage | **99%** |
-| Frontend coverage | **97%** |
+| Frontend coverage | **96%** |
 | Import pipeline stages | **6** (EXIF · GPX · quests · GPS interpolation · elevation · thumbnails) |
 
 ---
@@ -257,8 +257,8 @@ After the first import of a geographic area, Stamped works entirely offline.
 | Map | ![Leaflet](https://img.shields.io/badge/Leaflet-199900?logo=leaflet&logoColor=white&style=flat-square) + Leaflet.markercluster |
 | State | ![Pinia](https://img.shields.io/badge/Pinia-FFD859?logo=pinia&logoColor=black&style=flat-square) |
 | EXIF | Pillow |
-| Backend testing | ![pytest](https://img.shields.io/badge/pytest-0A9EDC?logo=pytest&logoColor=white&style=flat-square) — 196 tests, 99% coverage |
-| Frontend testing | ![Vitest](https://img.shields.io/badge/Vitest-6E9F18?logo=vitest&logoColor=white&style=flat-square) + Vue Test Utils — 86 tests, 97% coverage |
+| Backend testing | ![pytest](https://img.shields.io/badge/pytest-0A9EDC?logo=pytest&logoColor=white&style=flat-square) — 208 tests, 99% coverage |
+| Frontend testing | ![Vitest](https://img.shields.io/badge/Vitest-6E9F18?logo=vitest&logoColor=white&style=flat-square) + Vue Test Utils — 140 tests, 96% coverage |
 | Linting | ruff · mypy · ESLint · Prettier · vue-tsc |
 | CI | ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?logo=githubactions&logoColor=white&style=flat-square) ![Codecov](https://img.shields.io/badge/Codecov-F01F7A?logo=codecov&logoColor=white&style=flat-square) |
 
