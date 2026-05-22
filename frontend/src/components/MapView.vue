@@ -269,11 +269,15 @@ watch(
   filter: hue-rotate(160deg) brightness(1.3) drop-shadow(0 0 4px #e85d04);
   z-index: 9999 !important;
 }
-.marker-cluster.marker--highlighted {
-  filter: none;
-  outline: 3px solid #e85d04;
-  outline-offset: 2px;
-  z-index: 9999 !important;
+.marker-cluster.marker--highlighted div {
+  background-color: #e85d04 !important;
+  color: white !important;
+  box-shadow:
+    0 0 0 4px rgba(232, 93, 4, 0.4),
+    0 0 12px 4px rgba(232, 93, 4, 0.6) !important;
+}
+.marker-cluster.marker--highlighted span {
+  color: white !important;
 }
 .popup-generating {
   width: 150px;
