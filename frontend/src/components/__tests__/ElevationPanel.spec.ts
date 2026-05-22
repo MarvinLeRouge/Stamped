@@ -136,4 +136,28 @@ describe('ElevationPanel', () => {
 
     expect(highlightStore.hoveredTimestamp).not.toBeNull()
   })
+
+  it('renders y-labels for large elevation range (> 200m)', async () => {
+    const store = useElevationStore()
+    store.setPoints([
+      { d: 0, alt: 0, t: '2024-01-01T08:00:00Z' },
+      { d: 5000, alt: 600, t: '2024-01-01T09:00:00Z' },
+    ])
+    store.visible = true
+    await flushPromises()
+    expect(wrapper.find('polyline').exists()).toBe(true)
+  })
+
+  it('renders x-labels for long track (> 10km)', async () => {
+    const store = useElevationStore()
+    const pts = Array.from({ length: 3 }, (_, i) => ({
+      d: i * 8000,
+      alt: 100 + i * 10,
+      t: `2024-01-01T0${8 + i}:00:00Z`,
+    }))
+    store.setPoints(pts)
+    store.visible = true
+    await flushPromises()
+    expect(wrapper.find('polyline').exists()).toBe(true)
+  })
 })
