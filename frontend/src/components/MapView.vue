@@ -89,8 +89,8 @@ function refreshMarkers(): void {
       const img = marker.getPopup()?.getElement()?.querySelector('img.popup-thumb')
       if (img) img.addEventListener('click', () => lightboxStore.open(photo.id), { once: true })
     })
-    marker.on('mouseover', () => highlightStore.highlight(photo.id))
-    marker.on('mouseout', () => highlightStore.highlight(null))
+    marker.on('mouseover', () => highlightStore.highlight(photo.id, photo.captured_at))
+    marker.on('mouseout', () => highlightStore.highlight(null, null))
     markerMap.set(photo.id, marker)
     clusterGroup!.addLayer(marker)
   })
@@ -165,14 +165,21 @@ async function loadVisiblePhotos(): Promise<void> {
   refreshMarkers()
 }
 
+function getVisibleElement(photoId: number): Element | null | undefined {
+  const marker = markerMap.get(photoId)
+  if (!marker || !clusterGroup) return null
+  const visible = clusterGroup.getVisibleParent(marker)
+  return visible?.getElement?.()
+}
+
 watch(
   () => highlightStore.hoveredPhotoId,
   (newId, oldId) => {
     if (oldId !== null) {
-      markerMap.get(oldId)?.getElement()?.classList.remove('marker--highlighted')
+      getVisibleElement(oldId)?.classList.remove('marker--highlighted')
     }
     if (newId !== null) {
-      markerMap.get(newId)?.getElement()?.classList.add('marker--highlighted')
+      getVisibleElement(newId)?.classList.add('marker--highlighted')
     }
   },
 )
@@ -261,6 +268,16 @@ watch(
 .marker--highlighted {
   filter: hue-rotate(160deg) brightness(1.3) drop-shadow(0 0 4px #e85d04);
   z-index: 9999 !important;
+}
+.marker-cluster.marker--highlighted div {
+  background-color: #e85d04 !important;
+  color: white !important;
+  box-shadow:
+    0 0 0 4px rgba(232, 93, 4, 0.4),
+    0 0 12px 4px rgba(232, 93, 4, 0.6) !important;
+}
+.marker-cluster.marker--highlighted span {
+  color: white !important;
 }
 .popup-generating {
   width: 150px;

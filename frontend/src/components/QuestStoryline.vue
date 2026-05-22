@@ -91,6 +91,25 @@ watch(
 )
 
 watch(
+  () => highlightStore.hoveredTimestamp,
+  (t) => {
+    if (!t || highlightStore.hoveredPhotoId !== null || !photos.value.length) return
+    const ts = new Date(t).getTime()
+    let closest = photos.value[0]!
+    let minDiff = Math.abs(new Date(closest.captured_at ?? 0).getTime() - ts)
+    for (const p of photos.value) {
+      if (!p.captured_at) continue
+      const diff = Math.abs(new Date(p.captured_at).getTime() - ts)
+      if (diff < minDiff) {
+        minDiff = diff
+        closest = p
+      }
+    }
+    highlightStore.hoveredPhotoId = closest.id
+  },
+)
+
+watch(
   () => questsStore.selectedQuestId,
   async (id) => {
     photos.value = []

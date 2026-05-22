@@ -132,6 +132,26 @@ describe('QuestStoryline', () => {
     expect(wrapper.find('.storyline__item').classes()).toContain('storyline__item--highlighted')
   })
 
+  it('hoveredTimestamp without photoId finds nearest photo and sets hoveredPhotoId', async () => {
+    const highlightStore = useHighlightStore()
+    useQuestsStore().selectedQuestId = 1
+    await flushPromises()
+    // Simulate elevation panel hover: only timestamp set, no photoId
+    highlightStore.highlight(null, PHOTOS[0]!.captured_at)
+    await flushPromises()
+    expect(highlightStore.hoveredPhotoId).toBe(PHOTOS[0]!.id)
+  })
+
+  it('hoveredTimestamp with existing photoId does not override it', async () => {
+    const highlightStore = useHighlightStore()
+    useQuestsStore().selectedQuestId = 1
+    await flushPromises()
+    // Simulate map/storyline hover: both id and timestamp set
+    highlightStore.highlight(PHOTOS[1]!.id, PHOTOS[1]!.captured_at)
+    await flushPromises()
+    expect(highlightStore.hoveredPhotoId).toBe(PHOTOS[1]!.id)
+  })
+
   it('clicking delete button removes photo from list', async () => {
     vi.mocked(api.delete).mockResolvedValue({})
     const store = useQuestsStore()
