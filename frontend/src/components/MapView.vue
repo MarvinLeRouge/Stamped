@@ -165,14 +165,21 @@ async function loadVisiblePhotos(): Promise<void> {
   refreshMarkers()
 }
 
+function getVisibleElement(photoId: number): Element | null | undefined {
+  const marker = markerMap.get(photoId)
+  if (!marker || !clusterGroup) return null
+  const visible = clusterGroup.getVisibleParent(marker)
+  return visible?.getElement?.()
+}
+
 watch(
   () => highlightStore.hoveredPhotoId,
   (newId, oldId) => {
     if (oldId !== null) {
-      markerMap.get(oldId)?.getElement()?.classList.remove('marker--highlighted')
+      getVisibleElement(oldId)?.classList.remove('marker--highlighted')
     }
     if (newId !== null) {
-      markerMap.get(newId)?.getElement()?.classList.add('marker--highlighted')
+      getVisibleElement(newId)?.classList.add('marker--highlighted')
     }
   },
 )
@@ -260,6 +267,12 @@ watch(
 }
 .marker--highlighted {
   filter: hue-rotate(160deg) brightness(1.3) drop-shadow(0 0 4px #e85d04);
+  z-index: 9999 !important;
+}
+.marker-cluster.marker--highlighted {
+  filter: none;
+  outline: 3px solid #e85d04;
+  outline-offset: 2px;
   z-index: 9999 !important;
 }
 .popup-generating {

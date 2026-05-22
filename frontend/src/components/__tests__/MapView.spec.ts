@@ -17,7 +17,10 @@ const mockMarker = {
   on: vi.fn(),
   getElement: vi.fn(() => mockMarkerEl),
 }
-const mockCluster = { addLayer: vi.fn() }
+const mockCluster = {
+  addLayer: vi.fn(),
+  getVisibleParent: vi.fn((marker) => marker),
+}
 const mockContainer = { style: { cursor: '' } }
 const mockMap = {
   removeLayer: vi.fn(),
