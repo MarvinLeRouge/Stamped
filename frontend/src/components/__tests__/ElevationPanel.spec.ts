@@ -118,7 +118,7 @@ describe('ElevationPanel', () => {
     highlightStore.highlight(null, '2024-06-01T08:10:00Z')
     await flushPromises()
     // The storyline cursor line should be rendered
-    expect(wrapper.find('.elev-cursor--storyline').exists()).toBe(true)
+    expect(wrapper.find('.elev-cursor').exists()).toBe(true)
   })
 
   it('mousemove sets hoverX and syncs highlight timestamp', async () => {

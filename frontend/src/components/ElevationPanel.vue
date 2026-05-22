@@ -43,8 +43,8 @@ const area = computed(() => {
   return `${first} ${polyline.value} ${last}`
 })
 
-// Highlight point driven by Storyline hover (hoveredTimestamp)
-const highlightedX = computed(() => {
+// Highlight point driven by Storyline/map hover (hoveredTimestamp)
+const highlightedPoint = computed(() => {
   const t = highlightStore.hoveredTimestamp
   if (!t || !pts.value.length) return null
   const ts = new Date(t).getTime()
@@ -57,8 +57,12 @@ const highlightedX = computed(() => {
       closest = p
     }
   }
-  return px(closest.d)
+  return closest
 })
+
+const highlightedX = computed(() =>
+  highlightedPoint.value !== null ? px(highlightedPoint.value.d) : null,
+)
 
 // Y labels
 const yLabels = computed(() => {
@@ -165,15 +169,19 @@ watch(
           {{ l.label }}
         </text>
 
-        <!-- Storyline hover → highlight on profile -->
-        <line
-          v-if="highlightedX !== null"
-          :x1="highlightedX"
-          :x2="highlightedX"
-          :y1="PAD.top"
-          :y2="H - PAD.bottom"
-          class="elev-cursor elev-cursor--storyline"
-        />
+        <!-- Sync cursor (storyline / map hover) -->
+        <g v-if="highlightedX !== null && hoverX === null">
+          <line
+            :x1="highlightedX"
+            :x2="highlightedX"
+            :y1="PAD.top"
+            :y2="H - PAD.bottom"
+            class="elev-cursor"
+          />
+          <text :x="highlightedX + 4" :y="PAD.top + 10" class="elev-tooltip">
+            {{ highlightedPoint ? Math.round(highlightedPoint.alt) + 'm' : '' }}
+          </text>
+        </g>
 
         <!-- Mouse hover cursor -->
         <g v-if="hoverX !== null">
@@ -245,11 +253,6 @@ watch(
   stroke-width: 1;
   stroke-dasharray: 3 2;
   vector-effect: non-scaling-stroke;
-}
-
-.elev-cursor--storyline {
-  stroke: #e2e8f0;
-  stroke-width: 1.5;
 }
 
 .elev-tooltip {
