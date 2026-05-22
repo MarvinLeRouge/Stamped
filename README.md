@@ -17,7 +17,7 @@
 
 ---
 
-## Concept
+## 💡 Concept
 
 Standard photo apps ask you to tag, organize and describe. Stamped doesn't. Point it at a folder, and it reads your EXIF data and GPX tracks, detects your outings automatically, places every photo on a map, and shows you the extent of your documented territory at a glance.
 
@@ -25,7 +25,7 @@ Each geotagged photo is evidence of presence. Stamped treats your collection as 
 
 ---
 
-## Key figures
+## 📊 Key figures
 
 | Metric | Value |
 |---|---|
@@ -38,7 +38,35 @@ Each geotagged photo is evidence of presence. Stamped treats your collection as 
 
 ---
 
-## Features
+## 📸 Screenshots
+
+### All quests
+
+[![All quests](docs/screenshots/quests-all.png)](docs/screenshots/quests-all.png)
+
+### Quest view — elevation profile collapsed
+
+[![Quest view — elevation profile collapsed](docs/screenshots/quest-without-altitude.png)](docs/screenshots/quest-without-altitude.png)
+
+### Photo marker hover
+
+[![Photo marker hover](docs/screenshots/quest-hover-marker.png)](docs/screenshots/quest-hover-marker.png)
+
+### Cluster hover — elevation sync
+
+[![Cluster hover — elevation sync](docs/screenshots/quest-hover-cluster.png)](docs/screenshots/quest-hover-cluster.png)
+
+### Opened cluster hover
+
+[![Opened cluster hover](docs/screenshots/quest-hover-opened-cluster.png)](docs/screenshots/quest-hover-opened-cluster.png)
+
+### Alternate OSM layer
+
+[![Alternate OSM layer](docs/screenshots/quest-osm-alternate.png)](docs/screenshots/quest-osm-alternate.png)
+
+---
+
+## ✨ Features
 
 - **Conquest map** — all geotagged photos on an OSM map, clustered by zoom level; filter by quest, date range or bounding box
 - **Quest detection** — outings auto-detected by temporal clustering (configurable gap); quests renameable
@@ -51,7 +79,7 @@ Each geotagged photo is evidence of presence. Stamped treats your collection as 
 
 ---
 
-## Architecture
+## 🏗️ Architecture
 
 ```
 backend/
@@ -83,7 +111,7 @@ frontend/
 
 ---
 
-## Design decisions
+## 🧠 Design decisions
 
 ### Live COUNT vs. cached counter for orphan stats
 
@@ -99,7 +127,7 @@ frontend/
 
 ---
 
-## API
+## 📡 API
 
 | Method | Route | Description |
 |---|---|---|
@@ -125,7 +153,7 @@ frontend/
 
 ---
 
-## Testing
+## 🧪 Testing
 
 ### Backend — pytest
 
@@ -159,7 +187,7 @@ make test
 
 ---
 
-## CI
+## ⚙️ CI
 
 [`ci.yml`](.github/workflows/ci.yml) — triggers on push and pull request:
 
@@ -170,7 +198,7 @@ make test
 
 ---
 
-## Getting started
+## 🚀 Getting started
 
 **Prerequisites** — Python 3.12+, Node.js 18+
 
@@ -200,7 +228,7 @@ STAMPED_CAMERA_UTC_OFFSET_HOURS=2   # e.g. CEST
 
 ---
 
-## Privacy
+## 🔒 Privacy
 
 Stamped makes three optional outbound network calls:
 
@@ -264,7 +292,7 @@ After the first import of a geographic area, Stamped works entirely offline.
 
 ---
 
-## License
+## 📋 License
 
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
 

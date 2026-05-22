@@ -17,7 +17,7 @@
 
 ---
 
-## Concept
+## 💡 Concept
 
 Les applications photo classiques vous demandent de tagger, organiser, décrire. Stamped ne demande rien. Pointez-le sur un dossier : il lit vos données EXIF et vos traces GPX, détecte automatiquement vos sorties, place chaque photo sur une carte et vous montre d'un coup d'œil l'étendue de votre territoire documenté.
 
@@ -25,20 +25,48 @@ Chaque photo géolocalisée est une preuve de présence. Stamped traite votre co
 
 ---
 
-## Chiffres clés
+## 📊 Chiffres clés
 
 | Métrique | Valeur |
 |---|---|
 | Tests backend | **208 passants** |
-| Tests frontend | **140 passants** |
+| Tests frontend | **146 passants** |
 | Endpoints API | **19** |
 | Couverture backend | **99%** |
-| Couverture frontend | **96%** |
+| Couverture frontend | **97%** |
 | Étapes du pipeline d'import | **6** (EXIF · GPX · quests · interpolation GPS · élévation · thumbnails) |
 
 ---
 
-## Fonctionnalités
+## 📸 Captures d'écran
+
+### Toutes les quests
+
+[![Toutes les quests](docs/screenshots/quests-all.png)](docs/screenshots/quests-all.png)
+
+### Vue quest — profil d'élévation réduit
+
+[![Vue quest — profil d'élévation réduit](docs/screenshots/quest-without-altitude.png)](docs/screenshots/quest-without-altitude.png)
+
+### Survol d'un marqueur photo
+
+[![Survol d'un marqueur photo](docs/screenshots/quest-hover-marker.png)](docs/screenshots/quest-hover-marker.png)
+
+### Survol d'un cluster — synchro élévation
+
+[![Survol d'un cluster — synchro élévation](docs/screenshots/quest-hover-cluster.png)](docs/screenshots/quest-hover-cluster.png)
+
+### Survol d'un cluster ouvert
+
+[![Survol d'un cluster ouvert](docs/screenshots/quest-hover-opened-cluster.png)](docs/screenshots/quest-hover-opened-cluster.png)
+
+### Couche OSM alternative
+
+[![Couche OSM alternative](docs/screenshots/quest-osm-alternate.png)](docs/screenshots/quest-osm-alternate.png)
+
+---
+
+## ✨ Fonctionnalités
 
 - **Carte de conquête** — toutes les photos géolocalisées sur une carte OSM, clusterisées par niveau de zoom ; filtrage par quest, plage de dates ou zone géographique
 - **Détection des quests** — sorties auto-détectées par clustering temporel (seuil configurable) ; renommage manuel possible
@@ -51,7 +79,7 @@ Chaque photo géolocalisée est une preuve de présence. Stamped traite votre co
 
 ---
 
-## Architecture
+## 🏗️ Architecture
 
 ```
 backend/
@@ -83,7 +111,7 @@ frontend/
 
 ---
 
-## Décisions de conception
+## 🧠 Décisions de conception
 
 ### COUNT live vs. compteur persistant pour les statistiques orphelines
 
@@ -99,7 +127,7 @@ frontend/
 
 ---
 
-## API
+## 📡 API
 
 | Méthode | Route | Description |
 |---|---|---|
@@ -125,7 +153,7 @@ frontend/
 
 ---
 
-## Tests
+## 🧪 Tests
 
 ### Backend — pytest
 
@@ -159,7 +187,7 @@ make test
 
 ---
 
-## CI
+## ⚙️ CI
 
 [`ci.yml`](.github/workflows/ci.yml) — déclenché sur push et pull request :
 
@@ -170,7 +198,7 @@ make test
 
 ---
 
-## Démarrage
+## 🚀 Démarrage
 
 **Prérequis** — Python 3.12+, Node.js 18+
 
@@ -200,7 +228,7 @@ STAMPED_CAMERA_UTC_OFFSET_HOURS=2   # ex. CEST
 
 ---
 
-## Confidentialité
+## 🔒 Confidentialité
 
 Stamped effectue trois appels réseau optionnels :
 
@@ -258,13 +286,13 @@ Après le premier import d'une zone géographique, Stamped fonctionne entièreme
 | État | ![Pinia](https://img.shields.io/badge/Pinia-FFD859?logo=pinia&logoColor=black&style=flat-square) |
 | EXIF | Pillow |
 | Tests backend | ![pytest](https://img.shields.io/badge/pytest-0A9EDC?logo=pytest&logoColor=white&style=flat-square) — 208 tests, 99% couverture |
-| Tests frontend | ![Vitest](https://img.shields.io/badge/Vitest-6E9F18?logo=vitest&logoColor=white&style=flat-square) + Vue Test Utils — 140 tests, 96% couverture |
+| Tests frontend | ![Vitest](https://img.shields.io/badge/Vitest-6E9F18?logo=vitest&logoColor=white&style=flat-square) + Vue Test Utils — 146 tests, 97% couverture |
 | Linting | ruff · mypy · ESLint · Prettier · vue-tsc |
 | CI | ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?logo=githubactions&logoColor=white&style=flat-square) ![Codecov](https://img.shields.io/badge/Codecov-F01F7A?logo=codecov&logoColor=white&style=flat-square) |
 
 ---
 
-## Licence
+## 📋 Licence
 
 Ce projet est distribué sous licence MIT — voir le fichier [LICENSE](LICENSE) pour les détails.
 
