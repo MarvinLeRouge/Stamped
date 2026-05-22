@@ -249,14 +249,14 @@ watch(
 }
 
 .elev-cursor {
-  stroke: #e85d04;
-  stroke-width: 1;
+  stroke: #e2e8f0;
+  stroke-width: 1.5;
   stroke-dasharray: 3 2;
   vector-effect: non-scaling-stroke;
 }
 
 .elev-tooltip {
-  fill: #ccc;
+  fill: #e2e8f0;
   font-size: 10px;
   font-family: monospace;
 }
