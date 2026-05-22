@@ -388,6 +388,48 @@ describe('MapView — logic', () => {
     expect(mockMarkerEl.classList.remove).toHaveBeenCalledWith('marker--highlighted')
   })
 
+  it('marker mouseover highlights with photo id and timestamp', async () => {
+    const highlightStore = useHighlightStore()
+    await emitReadyWithPhotos([
+      {
+        id: 9,
+        lat: 45.0,
+        lon: 6.0,
+        captured_at: '2024-07-14T10:00:00Z',
+        thumb_status: 'done',
+        quest_id: null,
+        is_orphan: false,
+      },
+    ])
+    const mouseoverHandler = mockMarker.on.mock.calls.find(
+      (c) => c[0] === 'mouseover',
+    )?.[1] as () => void
+    mouseoverHandler()
+    expect(highlightStore.hoveredPhotoId).toBe(9)
+    expect(highlightStore.hoveredTimestamp).toBe('2024-07-14T10:00:00Z')
+  })
+
+  it('marker mouseout clears both id and timestamp', async () => {
+    const highlightStore = useHighlightStore()
+    await emitReadyWithPhotos([
+      {
+        id: 9,
+        lat: 45.0,
+        lon: 6.0,
+        captured_at: '2024-07-14T10:00:00Z',
+        thumb_status: 'done',
+        quest_id: null,
+        is_orphan: false,
+      },
+    ])
+    const mouseoutHandler = mockMarker.on.mock.calls.find(
+      (c) => c[0] === 'mouseout',
+    )?.[1] as () => void
+    mouseoutHandler()
+    expect(highlightStore.hoveredPhotoId).toBeNull()
+    expect(highlightStore.hoveredTimestamp).toBeNull()
+  })
+
   it('segments with fewer than two points are skipped', async () => {
     vi.mocked(api.get).mockResolvedValueOnce({
       data: [
