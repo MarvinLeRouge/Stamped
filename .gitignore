@@ -39,3 +39,8 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# Ignore tooling
+.serena
+graphify-out
+.husky
