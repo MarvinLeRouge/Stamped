@@ -30,6 +30,20 @@ To regenerate locally, run `npx --yes git-cliff --config cliff.toml --output CHA
 - Add contribution guide
 - Add security policy
 - Remove unused frontend Vite scaffold README
+- Add backend architecture documentation
+- Add frontend architecture documentation
+- Trim global architecture doc, add tech stack sections
+- Add roadmap document
+- Add product context document
+- Add operations document
+- Add design system document
+- Add static API reference
+- Add backend developer guide
+- Add frontend developer guide
+- Add user guide
+- Add architecture decision records
+- Cross-link ADR 0016 from backend architecture
+- Trim README architecture, API and roadmap sections to summaries with links
 
 ### 🎨 Styling
 
@@ -40,6 +54,8 @@ To regenerate locally, run `npx --yes git-cliff --config cliff.toml --output CHA
 ### ⚙️ Miscellaneous Tasks
 
 - Remove paths-ignore on pull_request — ensures CI runs on docs PRs so Codecov can post patch status
+- Add automated changelog generation with git-cliff
+- Add GitHub pull request and issue templates
 ## [2.0.0] - 2026-05-21
 
 ### 🚀 Features
