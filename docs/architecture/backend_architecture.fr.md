@@ -39,6 +39,10 @@ backend/stamped/
 └── cli.py         # `stamped start` / `stamped index` / `stamped status`
 ```
 
+## Stack technique
+
+Python 3.12+, FastAPI, uvicorn, `sqlite3` (bibliothèque standard), Pydantic. EXIF via `exifread` et `piexif`, GPX via `gpxpy`, thumbnails via Pillow, géocodage via `geopy` (Nominatim), altitude via `httpx` vers OpenTopoData. Le SSE est servi avec `sse-starlette`. `sqlmodel` est listé dans `pyproject.toml` mais n'est actuellement utilisé nulle part dans le code.
+
 ## Accès aux données
 
 Stamped dialogue directement avec SQLite via le module standard `sqlite3` (requêtes paramétrées, row factory `sqlite3.Row`) - il n'y a pas d'ORM. Les formes de réponse sont déclarées comme des classes Pydantic `BaseModel` à côté de chaque router (ex. `PhotoSummary` dans `api/photos.py`), découplées du résultat SQL brut. Les schémas de tables vivent entièrement dans `migrations/*.sql`.

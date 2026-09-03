@@ -39,6 +39,10 @@ frontend/src/
 
 There is no `composables/` directory: state lives directly in Pinia stores.
 
+## Tech stack
+
+Vue 3, Vite, TypeScript, Pinia, Axios. Map rendering via Leaflet, `@vue-leaflet/vue-leaflet`, and `leaflet.markercluster`. Tests with Vitest and `@vue/test-utils`. Linting with ESLint, formatting with Prettier.
+
 ## State management
 
 Each Pinia store (Composition API `defineStore` with `setup` syntax) owns one concern and exposes its own `fetch`/action functions calling `api/index.ts` directly - there is no separate per-resource API module layer. Components read store state via `storeToRefs` and call store actions; they do not call Axios directly. Data is fetched on mount and re-fetched explicitly after mutating actions (e.g. the status store is re-fetched after a photo delete) rather than kept live via a persistent connection.

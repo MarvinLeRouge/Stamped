@@ -39,6 +39,10 @@ frontend/src/
 
 Il n'y a pas de dossier `composables/` : l'état vit directement dans les stores Pinia.
 
+## Stack technique
+
+Vue 3, Vite, TypeScript, Pinia, Axios. Rendu de la carte via Leaflet, `@vue-leaflet/vue-leaflet` et `leaflet.markercluster`. Tests avec Vitest et `@vue/test-utils`. Lint avec ESLint, formatage avec Prettier.
+
 ## Gestion d'état
 
 Chaque store Pinia (Composition API, syntaxe `setup` de `defineStore`) gère un seul domaine et expose ses propres fonctions `fetch`/actions appelant directement `api/index.ts` - il n'y a pas de couche de modules API séparée par ressource. Les composants lisent l'état des stores via `storeToRefs` et appellent les actions des stores ; ils n'appellent jamais Axios directement. Les données sont récupérées au montage et re-récupérées explicitement après une action de mutation (ex. le store status est re-fetché après suppression d'une photo) plutôt que maintenues à jour via une connexion persistante.
