@@ -81,75 +81,13 @@ Chaque photo géolocalisée est une preuve de présence. Stamped traite votre co
 
 ## 🏗️ Architecture
 
-```
-backend/
-├── stamped/
-│   ├── api/           # Routes FastAPI — fines, sans logique métier
-│   ├── services/      # Logique métier (import, quests, thumbnails, élévation, GPX)
-│   ├── workers/       # Tâches CPU (extraction EXIF, parsing GPX, génération thumbnails, API élévation)
-│   └── core/          # db.py · config.py · events.py (SSE) · fs.py
-├── tests/             # Miroir de la structure source
-migrations/            # Scripts SQL versionnés (pas d'outil de migration ORM)
-
-frontend/
-└── src/
-    ├── components/    # MapView · QuestList · QuestStoryline · PhotoLightbox · StatusDashboard
-    └── stores/        # photos · quests · lightbox · placement · status
-```
-
-### Schéma de base de données (SQLite)
-
-| Table | Rôle |
-|---|---|
-| `photos` | Toutes les photos importées — métadonnées EXIF, GPS, statut thumbnail, flag orphelin |
-| `quests` | Sorties auto-détectées — nom, bbox, nombre de photos |
-| `gpx_files` | Fichiers GPX importés liés aux quests |
-| `gpx_trackpoints` | Tous les points de trace avec horodatages |
-| `deleted_photos` | Liste noire SHA-256 — empêche la réindexation des photos supprimées |
-| `geocode_cache` | Cache du géocodage inverse Nominatim |
-| `system_state` | Métadonnées d'import (date du dernier index) |
-
----
-
-## 🧠 Décisions de conception
-
-### COUNT live vs. compteur persistant pour les statistiques orphelines
-
-`GET /api/status` exécute `SELECT COUNT(*) FROM photos WHERE is_orphan = 1` à chaque appel plutôt que de lire une valeur mise en cache. L'index `idx_photos_orphan` rend cette opération O(nombre d'orphelines) — sub-milliseconde quelle que soit la taille d'une collection personnelle. Un compteur persistant nécessiterait des mises à jour cohérentes dans quatre endpoints distincts (`PATCH /photos/{id}`, `DELETE /photos/{id}`, `POST /quests/{id}/place`, pipeline d'import) ; chaque oubli produit une dérive silencieuse. Ce bug a été rencontré en pratique : le compteur est devenu obsolète dès l'ajout du placement manuel. Sur SQLite avec index, les agrégats live sont plus fiables que les caches applicatifs, sauf mesure contraire.
-
-### Suppression de photos — base de données uniquement, fichiers originaux intacts
-
-`DELETE /api/photos/{id}` supprime le record en base et le thumbnail généré, puis insère le hash SHA-256 du fichier dans `deleted_photos`. Le fichier original n'est jamais modifié ni supprimé. Le SHA-256 est déjà calculé à l'import pour la déduplication — la vérification contre `deleted_photos` n'ajoute aucun coût au pipeline. Sans cette liste noire, `stamped index` sur le même dossier réimporterait la photo supprimée à la prochaine exécution.
-
-### Point médian chronologique pour le placement en masse des orphelines
-
-`POST /api/quests/{id}/place` utilise le point médian chronologique (trackpoints + photos géolocalisées, triés par horodatage, élément central) plutôt que le centroïde géométrique. Sur un aller-retour linéaire, la moyenne arithmétique des coordonnées tomberait au milieu du trajet — ce que fait aussi le médian, mais ancré dans le temps réel passé plutôt que dans l'espace géométrique. Sur une boucle, la moyenne peut sortir du sentier. La position placée est un point de départ ; l'utilisateur peut la surcharger avec des coordonnées explicites ou affiner photo par photo.
+Application en deux processus : backend FastAPI sur `127.0.0.1:8421`, frontend Vue 3 + Vite. Voir [docs/architecture.fr.md](docs/architecture.fr.md) pour la vue d'ensemble, [docs/architecture/backend_architecture.fr.md](docs/architecture/backend_architecture.fr.md) et [docs/architecture/frontend_architecture.fr.md](docs/architecture/frontend_architecture.fr.md) pour les détails d'implémentation, et [docs/adr/](docs/adr/README.md) pour les décisions de conception (compteur live vs cache, liste noire de suppression, placement médian, décrites auparavant ici). Note : les ADR sont rédigées en anglais uniquement.
 
 ---
 
 ## 📡 API
 
-| Méthode | Route | Description |
-|---|---|---|
-| `GET` | `/api/status` | État du système — comptage photos, orphelines, dernier import |
-| `GET` | `/api/quests` | Toutes les quests triées par date |
-| `PATCH` | `/api/quests/{id}` | Renommer une quest |
-| `GET` | `/api/quests/{id}/photos` | Liste chronologique des photos d'une quest |
-| `GET` | `/api/quests/{id}/trackpoints` | Segments GPX groupés par fichier |
-| `GET` | `/api/quests/{id}/gpx` | Téléchargement GPX de la quest (fusionné si plusieurs fichiers) |
-| `POST` | `/api/quests/{id}/place` | Place toutes les orphelines d'une quest au point médian GPS |
-| `GET` | `/api/photos` | Liste de photos avec filtres bbox / date / quest / orphan |
-| `PATCH` | `/api/photos/{id}` | Définir les coordonnées GPS, effacer le flag orphelin |
-| `DELETE` | `/api/photos/{id}` | Supprimer de la base + thumbnail, mettre le hash en liste noire |
-| `GET` | `/api/photos/{id}/thumb` | Servir le thumbnail généré (202 si en attente) |
-| `GET` | `/api/photos/{id}/original` | Servir le fichier original |
-| `POST` | `/api/photos/{id}/thumb/priority` | Priorité dans la file de génération |
-| `POST` | `/api/import` | Démarrer le pipeline d'import, retourne un job ID |
-| `GET` | `/api/import/{job_id}` | Statut et progression du job d'import |
-| `POST` | `/api/reindex` | Réinitialiser et réimporter depuis zéro |
-| `GET` | `/api/search/geocode` | Proxy Nominatim (résultats mis en cache) |
-| `GET` | `/api/tiles/{z}/{x}/{y}.png` | Proxy tuiles OSM (cache filesystem) |
-| `GET` | `/api/events` | Flux SSE pour la progression de l'import |
+Référence complète des requêtes/réponses : [docs/api/api_endpoints.fr.md](docs/api/api_endpoints.fr.md), une référence statique et versionnée, la documentation Swagger en direct sur `/docs` n'étant accessible qu'une fois l'application installée et démarrée.
 
 ---
 
@@ -216,8 +154,10 @@ cd frontend && npm install && npm run build && cd ..
 stamped start
 
 # Importer un dossier de photos et fichiers GPX
-stamped index ~/Photos/2024/rando
+curl -X POST http://localhost:8421/api/import -H "Content-Type: application/json" -d '{"path": "/home/vous/Photos/2024/rando"}'
 ```
+
+Note : la commande CLI `stamped index <path>` décrite dans d'anciennes versions de ce README est actuellement un stub et ne déclenche aucun import. L'appel `POST /api/import` ci-dessus est aujourd'hui le seul moyen fonctionnel d'en démarrer un, voir [docs/operations.fr.md](docs/operations.fr.md) pour les détails et [docs/roadmap.fr.md](docs/roadmap.fr.md) pour le plan de raccordement de la commande CLI.
 
 Optionnel — décalage UTC de l'appareil photo (pour la précision de l'interpolation GPS) :
 
@@ -244,34 +184,7 @@ Après le premier import d'une zone géographique, Stamped fonctionne entièreme
 
 ## 🗺️ Roadmap
 
-### ✅ v1 — Livré
-
-- [x] **Phase 0** — Dépôt, outillage, CI
-- [x] **Phase 1** — Squelette backend (FastAPI, SQLite, SSE, config)
-- [x] **Phase 2** — Pipeline d'import (EXIF, GPX, clustering des quests, interpolation GPS, élévation, thumbnails)
-- [x] **Phase 3** — Génération des thumbnails (Pillow, orientation EXIF, file prioritaire)
-- [x] **Phase 4** — Carte et frontend (Leaflet, clustering, filtres, lightbox, polylines GPX)
-- [x] **Phase 5** — Storyline (liste de photos par quest, renommage, export GPX)
-- [x] **Phase 6** — Gestion des orphelines (placement manuel, placement en masse, suppression, liste noire des hash)
-- [x] **Phase 7** — Layout desktop (CSS Grid, échelle typographique, nettoyage du boilerplate)
-
-### ✅ v2 — Livré
-
-- [x] Synchronisation storyline ↔ carte — survol d'une photo met en évidence le marqueur, et inversement
-- [x] Vue "Photos sans quest" — orphelines avec `quest_id = NULL`, avec actions de placement et suppression
-- [x] Explorateur global de photos — filtres statut orphelin
-- [x] Couches OSM alternatives (topo, satellite) — avec tile-cache filesystem par couche
-- [x] Profil d'élévation — barre escamotable sous la carte, graphique SVG avec axe distance, synchronisé avec le survol de la Storyline
-
-### 🔜 v3 — Prévu
-
-- [ ] **Timeline macro des quests** — vue pleine largeur animée remplaçant la zone content ; quests positionnées par point médian chronologique (précision jour) ; blocs à largeur fixe empilés verticalement par densité (la plus ancienne en haut) ; blocs condensés "N quests" si capacité dépassée ; zoom molette souris ; clic retour vue normale
-- [ ] Surveillance de dossier — import automatique à la détection de nouveaux fichiers
-- [ ] Support des fichiers RAW
-- [ ] Export (JSON, GPX filtré)
-- [ ] Tagging par type d'activité
-- [ ] Thème sombre
-- [ ] Raccourcis clavier
+v1 et v2 sont livrées ; la v3 (timeline macro des quests, surveillance de dossier, support RAW, exports, tagging par activité, thème sombre, raccourcis clavier) est prévue. Détail complet : [docs/roadmap.fr.md](docs/roadmap.fr.md).
 
 ---
 
