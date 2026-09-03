@@ -53,7 +53,7 @@ Les changements de schéma sont des scripts SQL versionnés (`migrations/001_ini
 
 ## Pipeline d'import
 
-`POST /api/import` déclenche `services/import_service.py`, qui s'exécute en phases :
+`POST /api/import` déclenche `services/import_service.py`, qui s'exécute en phases, chacune écrivant ses résultats immédiatement plutôt qu'en fin de pipeline (voir [ADR 0016](../adr/0016-async-phased-import-pipeline.md)) :
 
 > **Note :** la commande CLI `stamped index <path>` est actuellement un stub (`backend/stamped/cli.py`) et n'appelle pas le pipeline d'import - voir [docs/operations.md](../operations.fr.md). Le seul moyen fonctionnel de démarrer un import aujourd'hui est `POST /api/import`.
 

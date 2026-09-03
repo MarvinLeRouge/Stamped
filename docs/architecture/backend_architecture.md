@@ -53,7 +53,7 @@ Schema changes are versioned SQL scripts (`migrations/001_init.sql`, `migrations
 
 ## Import pipeline
 
-`POST /api/import` triggers `services/import_service.py`, which runs in phases:
+`POST /api/import` triggers `services/import_service.py`, which runs in phases, each writing results immediately rather than staging until the end (see [ADR 0016](../adr/0016-async-phased-import-pipeline.md)):
 
 > **Note:** the `stamped index <path>` CLI command is currently a stub (`backend/stamped/cli.py`) and does not call the import pipeline - see [docs/operations.md](../operations.md). The only working way to start an import today is `POST /api/import`.
 
