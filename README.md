@@ -81,75 +81,13 @@ Each geotagged photo is evidence of presence. Stamped treats your collection as 
 
 ## 🏗️ Architecture
 
-```
-backend/
-├── stamped/
-│   ├── api/           # FastAPI routes — thin, no business logic
-│   ├── services/      # Business logic (import, quests, thumbnails, elevation, GPX)
-│   ├── workers/       # CPU-bound tasks (EXIF extraction, GPX parsing, thumb generation, elevation API)
-│   └── core/          # db.py · config.py · events.py (SSE) · fs.py
-├── tests/             # Mirrors source structure
-migrations/            # Versioned SQL scripts (no ORM migration tool)
-
-frontend/
-└── src/
-    ├── components/    # MapView · QuestList · QuestStoryline · PhotoLightbox · StatusDashboard
-    └── stores/        # photos · quests · lightbox · placement · status
-```
-
-### Database schema (SQLite)
-
-| Table | Role |
-|---|---|
-| `photos` | All imported photos — EXIF metadata, GPS, thumb status, orphan flag |
-| `quests` | Auto-detected outings — name, bbox, photo count |
-| `gpx_files` | Imported GPX files linked to quests |
-| `gpx_trackpoints` | All track points with timestamps |
-| `deleted_photos` | SHA-256 blocklist — prevents re-indexing deleted photos |
-| `geocode_cache` | Nominatim reverse geocoding cache |
-| `system_state` | Import metadata (last index date) |
-
----
-
-## 🧠 Design decisions
-
-### Live COUNT vs. cached counter for orphan stats
-
-`GET /api/status` queries `SELECT COUNT(*) FROM photos WHERE is_orphan = 1` on every call rather than reading a cached value from `system_state`. The `idx_photos_orphan` index makes this O(orphan count) — sub-millisecond at any realistic personal collection size. A cached counter would require consistent updates across four distinct endpoints (`PATCH /photos/{id}`, `DELETE /photos/{id}`, `POST /quests/{id}/place`, import pipeline). Each missing update is a silent data drift. We discovered this in practice: the cached counter went stale the moment manual placement was added. On SQLite with indexes, live aggregates are more reliable than application-level caches unless measurements show otherwise.
-
-### Photo deletion — DB only, original files untouched
-
-`DELETE /api/photos/{id}` removes the database record and the generated thumbnail, then inserts the file's SHA-256 hash into `deleted_photos`. The original file is never modified or deleted. The SHA-256 is already computed at import for deduplication — the blocklist check adds zero overhead to the import pipeline. Without the blocklist, `stamped index` on the same folder would re-import the deleted photo on the next run.
-
-### Chronological median for bulk orphan placement
-
-`POST /api/quests/{id}/place` uses the chronological median GPS point (trackpoints + geolocated photos, sorted by timestamp, middle element) rather than the geometric centroid. On a linear out-and-back route, the arithmetic mean of all coordinates would fall somewhere in the middle of the trail — which the median does too, but anchored to actual time spent rather than geometric space. On a loop, the mean can fall off the trail entirely. The placed position is a starting point; the user can override it with explicit coordinates or refine photo by photo afterward.
+Two-process app: FastAPI backend on `127.0.0.1:8421`, Vue 3 + Vite frontend. See [docs/architecture.md](docs/architecture.md) for the overview, [docs/architecture/backend_architecture.md](docs/architecture/backend_architecture.md) and [docs/architecture/frontend_architecture.md](docs/architecture/frontend_architecture.md) for implementation details, and [docs/adr/](docs/adr/README.md) for the design decisions behind them (including the live-count-vs-cache, deletion-blocklist and median-placement decisions previously listed here).
 
 ---
 
 ## 📡 API
 
-| Method | Route | Description |
-|---|---|---|
-| `GET` | `/api/status` | System status — photo count, orphan count, last import |
-| `GET` | `/api/quests` | All quests ordered by date |
-| `PATCH` | `/api/quests/{id}` | Rename a quest |
-| `GET` | `/api/quests/{id}/photos` | Chronological photo list for a quest |
-| `GET` | `/api/quests/{id}/trackpoints` | GPX segments grouped by file |
-| `GET` | `/api/quests/{id}/gpx` | Download quest GPX (merged if multiple files) |
-| `POST` | `/api/quests/{id}/place` | Place all orphan photos of a quest at median GPS point |
-| `GET` | `/api/photos` | Photo list with bbox / date / quest / orphan filters |
-| `PATCH` | `/api/photos/{id}` | Set GPS coordinates, clear orphan flag |
-| `DELETE` | `/api/photos/{id}` | Remove from DB + delete thumbnail, blocklist hash |
-| `GET` | `/api/photos/{id}/thumb` | Serve generated thumbnail (202 if pending) |
-| `GET` | `/api/photos/{id}/original` | Serve original file |
-| `POST` | `/api/photos/{id}/thumb/priority` | Bump thumbnail to priority queue |
-| `POST` | `/api/import` | Start import pipeline, returns job ID |
-| `GET` | `/api/import/{job_id}` | Import job status and progress |
-| `POST` | `/api/reindex` | Clear and re-import everything |
-| `GET` | `/api/search/geocode` | Nominatim geocoding proxy (cached) |
-| `GET` | `/api/tiles/{z}/{x}/{y}.png` | OSM tile proxy (filesystem cache) |
-| `GET` | `/api/events` | SSE stream for import progress |
+Full request/response reference: [docs/api/api_endpoints.md](docs/api/api_endpoints.md) - a static, committed reference, since the live Swagger docs at `/docs` are only reachable once the app is installed and running.
 
 ---
 
@@ -216,8 +154,10 @@ cd frontend && npm install && npm run build && cd ..
 stamped start
 
 # Import a folder of photos and GPX files
-stamped index ~/Photos/2024/hiking
+curl -X POST http://localhost:8421/api/import -H "Content-Type: application/json" -d '{"path": "/home/you/Photos/2024/hiking"}'
 ```
+
+Note: the `stamped index <path>` CLI command described in earlier versions of this README is currently a stub and does not trigger an import. The `POST /api/import` call above is the only working way to start one today - see [docs/operations.md](docs/operations.md) for details and [docs/roadmap.md](docs/roadmap.md) for the plan to wire the CLI command up.
 
 Optional — camera UTC offset (for GPS interpolation accuracy):
 
@@ -244,34 +184,7 @@ After the first import of a geographic area, Stamped works entirely offline.
 
 ## 🗺️ Roadmap
 
-### ✅ v1 — Delivered
-
-- [x] **Phase 0** — Repository, tooling, CI
-- [x] **Phase 1** — Backend skeleton (FastAPI, SQLite, SSE, config)
-- [x] **Phase 2** — Import pipeline (EXIF, GPX, quest clustering, GPS interpolation, elevation, thumbnails)
-- [x] **Phase 3** — Thumbnail generation (Pillow, EXIF orientation, priority queue)
-- [x] **Phase 4** — Map & frontend (Leaflet, clustering, filters, lightbox, GPX polylines)
-- [x] **Phase 5** — Storyline (per-quest photo list, quest renaming, GPX export)
-- [x] **Phase 6** — Orphan management (manual placement, bulk placement, photo deletion, deleted-hash blocklist)
-- [x] **Phase 7** — Desktop layout (CSS Grid, font scale, boilerplate cleanup)
-
-### ✅ v2 — Delivered
-
-- [x] Synchronized storyline ↔ map — hover on a photo highlights the map marker, and vice versa
-- [x] "Photos without quest" view — photos with `quest_id = NULL`, with placement and deletion actions
-- [x] Global photo browser — all photos with orphan status filter
-- [x] Alternative OSM layers (topo, satellite) — with filesystem tile cache per layer
-- [x] Elevation profile — collapsible panel below the map, SVG chart with distance axis, synced with storyline hover
-
-### 🔜 v3 — Planned
-
-- [ ] **Quest macro timeline** — full-width animated view replacing the content area; quests positioned by chronological midpoint (day precision); fixed-width blocks stacked vertically by density (oldest on top); collapsed "N quests" blocks when capacity exceeded; mouse-wheel zoom; click returns to normal view
-- [ ] Folder watch — automatic import on file change
-- [ ] RAW image support
-- [ ] Export (JSON, filtered GPX)
-- [ ] Activity type tagging
-- [ ] Dark theme
-- [ ] Keyboard shortcuts
+v1 and v2 are delivered; v3 (quest macro timeline, folder watch, RAW support, exports, activity tagging, dark theme, keyboard shortcuts) is planned. Full detail: [docs/roadmap.md](docs/roadmap.md).
 
 ---
 
