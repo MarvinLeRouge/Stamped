@@ -56,6 +56,7 @@ To regenerate locally, run `npx --yes git-cliff --config cliff.toml --output CHA
 - Remove paths-ignore on pull_request — ensures CI runs on docs PRs so Codecov can post patch status
 - Add automated changelog generation with git-cliff
 - Add GitHub pull request and issue templates
+- *(changelog)* Homogenize changelog workflow
 ## [2.0.0] - 2026-05-21
 
 ### 🚀 Features
