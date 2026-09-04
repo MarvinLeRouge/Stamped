@@ -28,7 +28,7 @@ jobs:
           node-version: "20"
 
       - name: Regenerate changelog
-        run: npx --yes git-cliff --config cliff.toml --output CHANGELOG.md
+        run: npx --yes git-cliff@2.13.1 --config cliff.toml --output CHANGELOG.md
 
       # main is protected: no direct push, so open a PR instead of committing
       # straight to it. Reuses the same branch across runs, updating the
@@ -42,3 +42,4 @@ jobs:
           body: Automated CHANGELOG.md regeneration via git-cliff, triggered by a push to main.
           branch: chore/update-changelog
           delete-branch: true
+          labels: changelog
