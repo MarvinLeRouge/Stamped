@@ -3,7 +3,7 @@
 **Status:** Accepted
 **Date:** 2026-05-20
 **Deciders:** Jean Ceugniet
-**Sources:** `docs/ai/reflexions.md` ("Suppression de photos"), commit `240dc14` (feat: photo deletion, deleted_photos blocklist and map placement mode)
+**Sources:** `docs/work-in-progress/reflexions.md` ("Suppression de photos"), commit `240dc14` (feat: photo deletion, deleted_photos blocklist and map placement mode)
 
 ## Context
 
