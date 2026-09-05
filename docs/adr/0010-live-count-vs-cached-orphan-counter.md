@@ -3,7 +3,7 @@
 **Status:** Accepted
 **Date:** 2026-05-20
 **Deciders:** Jean Ceugniet
-**Sources:** `docs/ai/reflexions.md` ("Comptage des photos orphelines"), commit `808863c` (fix(status,ui): live status counts and real-time refresh after photo delete)
+**Sources:** `docs/work-in-progress/reflexions.md` ("Comptage des photos orphelines"), commit `808863c` (fix(status,ui): live status counts and real-time refresh after photo delete)
 
 ## Context
 

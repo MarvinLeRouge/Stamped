@@ -3,7 +3,7 @@
 **Status:** Accepted
 **Date:** 2026-05-15
 **Deciders:** Jean Ceugniet
-**Sources:** `docs/ai/decisions.md` ADR-001
+**Sources:** `docs/work-in-progress/decisions.md` ADR-001
 
 ## Context
 

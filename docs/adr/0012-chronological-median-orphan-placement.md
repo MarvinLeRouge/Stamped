@@ -3,7 +3,7 @@
 **Status:** Accepted
 **Date:** 2026-05-19
 **Deciders:** Jean Ceugniet
-**Sources:** `docs/ai/reflexions.md` ("Placement des photos orphelines"), commits `aa7d6c2` (feat(api): add POST /api/quests/{id}/place for mass orphan placement), `4824793` (fix(api): recompute quest bbox after orphan placement)
+**Sources:** `docs/work-in-progress/reflexions.md` ("Placement des photos orphelines"), commits `aa7d6c2` (feat(api): add POST /api/quests/{id}/place for mass orphan placement), `4824793` (fix(api): recompute quest bbox after orphan placement)
 
 ## Context
 
