@@ -44,6 +44,7 @@ To regenerate locally, run `npx --yes git-cliff --config cliff.toml --output CHA
 - Add architecture decision records
 - Cross-link ADR 0016 from backend architecture
 - Trim README architecture, API and roadmap sections to summaries with links
+- Update hardcoded docs/ai references to docs/work-in-progress
 
 ### 🎨 Styling
 
@@ -57,6 +58,7 @@ To regenerate locally, run `npx --yes git-cliff --config cliff.toml --output CHA
 - Add automated changelog generation with git-cliff
 - Add GitHub pull request and issue templates
 - *(changelog)* Homogenize changelog workflow
+- Standardize AI working notes folder to docs/work-in-progress
 ## [2.0.0] - 2026-05-21
 
 ### 🚀 Features
