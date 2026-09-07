@@ -42,4 +42,3 @@ repos:
         language: system
         pass_filenames: false
         files: ^frontend/.*\.(ts|tsx|vue)$
-        stages: [pre-push]
