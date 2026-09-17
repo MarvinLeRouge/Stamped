@@ -17,6 +17,7 @@ To regenerate locally, run `npx --yes git-cliff --config cliff.toml --output CHA
 
 - *(map)* Pass captured_at timestamp on marker hover for elevation profile sync
 - *(coverage)* Suppress unreachable defensive branches in ElevationPanel
+- *(ci)* Trigger workflow on all pull requests, not just non-doc changes
 
 ### 📚 Documentation
 
