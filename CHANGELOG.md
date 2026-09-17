@@ -60,6 +60,7 @@ To regenerate locally, run `npx --yes git-cliff --config cliff.toml --output CHA
 - *(changelog)* Homogenize changelog workflow
 - Standardize AI working notes folder to docs/work-in-progress
 - *(tooling)* Run vue-tsc at pre-commit instead of pre-push
+- Add path-filter to skip backend/frontend jobs on unrelated changes
 ## [2.0.0] - 2026-05-21
 
 ### 🚀 Features
