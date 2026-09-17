@@ -67,6 +67,9 @@ jobs:
     needs: changes
     if: ${{ needs.changes.outputs.backend == 'true' }}
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -85,10 +88,10 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+          use_oidc: true
           files: coverage.xml
           flags: backend
-          fail_ci_if_error: true
+          fail_ci_if_error: false
 
   # ── Node / Vue ────────────────────────────────────────────────────────────
 
@@ -123,6 +126,9 @@ jobs:
     needs: changes
     if: ${{ needs.changes.outputs.frontend == 'true' }}
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -143,7 +149,7 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+          use_oidc: true
           files: frontend/coverage/lcov.info
           flags: frontend
-          fail_ci_if_error: true
+          fail_ci_if_error: false
