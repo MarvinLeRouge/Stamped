@@ -64,6 +64,7 @@ To regenerate locally, run `npx --yes git-cliff --config cliff.toml --output CHA
 - Skip CI on doc-only changes for pull requests
 - Switch Codecov upload from token to OIDC
 - *(ci)* Bump codecov-action to v7
+- *(ci)* Make Codecov thresholds blocking
 ## [2.0.0] - 2026-05-21
 
 ### 🚀 Features
