@@ -61,6 +61,9 @@ To regenerate locally, run `npx --yes git-cliff --config cliff.toml --output CHA
 - Standardize AI working notes folder to docs/work-in-progress
 - *(tooling)* Run vue-tsc at pre-commit instead of pre-push
 - Add path-filter to skip backend/frontend jobs on unrelated changes
+- Skip CI on doc-only changes for pull requests
+- Switch Codecov upload from token to OIDC
+- *(ci)* Bump codecov-action to v7
 ## [2.0.0] - 2026-05-21
 
 ### 🚀 Features
