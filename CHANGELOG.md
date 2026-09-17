@@ -45,6 +45,7 @@ To regenerate locally, run `npx --yes git-cliff --config cliff.toml --output CHA
 - Cross-link ADR 0016 from backend architecture
 - Trim README architecture, API and roadmap sections to summaries with links
 - Update hardcoded docs/ai references to docs/work-in-progress
+- *(readme)* Document codecov coverage thresholds
 
 ### 🎨 Styling
 
