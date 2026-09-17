@@ -134,6 +134,8 @@ make test
 3. **Tests frontend** — Vitest avec couverture, envoyé à Codecov (flag `frontend`)
 4. **Hook pre-push** — vue-tsc s'exécute localement avant chaque push
 
+Seuils de couverture (`codecov.yml`, bloquants) : projet 80 % (±1 %), patch 90 % (±5 %).
+
 ---
 
 ## 🚀 Démarrage

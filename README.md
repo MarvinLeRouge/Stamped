@@ -134,6 +134,8 @@ make test
 3. **Frontend tests** — Vitest with coverage, uploaded to Codecov (`frontend` flag)
 4. **Pre-push hook** — vue-tsc type-check runs locally before any push
 
+Coverage thresholds (`codecov.yml`, blocking): project 80% (±1%), patch 90% (±5%).
+
 ---
 
 ## 🚀 Getting started
