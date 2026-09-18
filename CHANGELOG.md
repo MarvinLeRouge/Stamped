@@ -18,6 +18,8 @@ To regenerate locally, run `npx --yes git-cliff --config cliff.toml --output CHA
 - *(map)* Pass captured_at timestamp on marker hover for elevation profile sync
 - *(coverage)* Suppress unreachable defensive branches in ElevationPanel
 - *(ci)* Trigger workflow on all pull requests, not just non-doc changes
+- *(ci)* Add pip-audit to dev dependencies
+- *(frontend)* Bump vitest to resolve npm audit vulnerabilities
 
 ### 📚 Documentation
 
@@ -68,6 +70,7 @@ To regenerate locally, run `npx --yes git-cliff --config cliff.toml --output CHA
 - *(ci)* Bump codecov-action to v7
 - *(ci)* Make Codecov thresholds blocking
 - *(ci)* Add ci-status aggregator job
+- Homogenize job naming and add security stages
 ## [2.0.0] - 2026-05-21
 
 ### 🚀 Features
