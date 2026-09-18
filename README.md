@@ -13,7 +13,8 @@
 [![CI](https://github.com/MarvinLeRouge/Stamped/actions/workflows/ci.yml/badge.svg)](https://github.com/MarvinLeRouge/Stamped/actions)
 [![codecov backend](https://img.shields.io/codecov/c/github/MarvinLeRouge/Stamped?flag=backend&label=backend&logo=codecov)](https://codecov.io/gh/MarvinLeRouge/Stamped)
 [![codecov frontend](https://img.shields.io/codecov/c/github/MarvinLeRouge/Stamped?flag=frontend&label=frontend&logo=codecov)](https://codecov.io/gh/MarvinLeRouge/Stamped)
-![License](https://img.shields.io/github/license/MarvinLeRouge/Stamped?cacheSeconds=3600)
+![Tests](https://img.shields.io/badge/Tests-354%20passing-brightgreen)
+[![License](https://img.shields.io/github/license/MarvinLeRouge/Stamped?cacheSeconds=3600)](LICENSE)
 
 ---
 
