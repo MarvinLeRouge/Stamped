@@ -49,6 +49,7 @@ To regenerate locally, run `npx --yes git-cliff --config cliff.toml --output CHA
 - Trim README architecture, API and roadmap sections to summaries with links
 - Update hardcoded docs/ai references to docs/work-in-progress
 - *(readme)* Document codecov coverage thresholds
+- *(readme)* Add tests badge and fix license link
 
 ### 🎨 Styling
 
