@@ -1,3 +1,5 @@
+default_install_hook_types: [pre-commit, post-commit]
+
 repos:
   # ── Python backend ─────────────────────────────────────────────────────────
   - repo: https://github.com/astral-sh/ruff-pre-commit
@@ -18,6 +20,14 @@ repos:
         language: system
         pass_filenames: false
         files: ^backend/
+
+      - id: changelog
+        name: Update CHANGELOG.md (git-cliff)
+        entry: bash scripts/changelog-post-commit.sh
+        language: system
+        stages: [post-commit]
+        pass_filenames: false
+        always_run: true
 
   # ── Node / Vue frontend ────────────────────────────────────────────────────
   - repo: local
