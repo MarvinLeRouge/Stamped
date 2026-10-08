@@ -1,4 +1,4 @@
-🇫🇷 Version française | [🇬🇧 English version](SECURITY.md)
+🇫🇷 Version française | [🇬🇧 English version](../../../SECURITY.md)
 
 ---
 
@@ -24,4 +24,4 @@ Hors périmètre : les services tiers appelés à l'import (serveurs de tuiles O
 
 ## Particularités d'une application local-first
 
-Stamped n'a ni authentification, ni comptes, ni surface d'attaque réseau au-delà des trois appels sortants décrits dans la section [Confidentialité](README.fr.md#-confidentialité) du README (tuiles OSM, OpenTopoData, Nominatim), tous en lecture seule, mis en cache localement, et qui ne transportent jamais le contenu des photos. Le serveur FastAPI n'écoute que sur `localhost` et est conçu pour tourner sur une seule machine de confiance, pas pour être exposé sur un réseau.
+Stamped n'a ni authentification, ni comptes, ni surface d'attaque réseau au-delà des trois appels sortants décrits dans la section [Confidentialité](../../../README.fr.md#-confidentialité) du README (tuiles OSM, OpenTopoData, Nominatim), tous en lecture seule, mis en cache localement, et qui ne transportent jamais le contenu des photos. Le serveur FastAPI n'écoute que sur `localhost` et est conçu pour tourner sur une seule machine de confiance, pas pour être exposé sur un réseau.

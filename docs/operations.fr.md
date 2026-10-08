@@ -27,7 +27,7 @@ cd frontend && npm install && npm run build && cd ..
 stamped start
 ```
 
-Ouvre `http://localhost:8421` dans le navigateur automatiquement (`--no-browser` pour désactiver). Si `frontend/dist/` est absent, `stamped start` le construit d'abord via `npm run build`. Se lie uniquement à `127.0.0.1`, voir [SECURITY.md](../SECURITY.fr.md).
+Ouvre `http://localhost:8421` dans le navigateur automatiquement (`--no-browser` pour désactiver). Si `frontend/dist/` est absent, `stamped start` le construit d'abord via `npm run build`. Se lie uniquement à `127.0.0.1`, voir [SECURITY.md](i18n/fr/SECURITY.fr.md).
 
 ## Importer des photos et des traces GPX
 
@@ -90,7 +90,7 @@ Supprimer `data/` réinitialise l'app à un état vierge ; les photos originales
 | OpenTopoData | À l'import seulement | En SQLite |
 | Nominatim | Géocodage des quests | En SQLite |
 
-Après le premier import d'une zone géographique, Stamped fonctionne entièrement hors-ligne. Voir [SECURITY.md](../SECURITY.fr.md) pour le détail complet réseau/surface d'attaque.
+Après le premier import d'une zone géographique, Stamped fonctionne entièrement hors-ligne. Voir [SECURITY.md](i18n/fr/SECURITY.fr.md) pour le détail complet réseau/surface d'attaque.
 
 ## Tests et lint
 

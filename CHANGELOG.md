@@ -50,6 +50,7 @@ To regenerate locally, run `npx --yes git-cliff --config cliff.toml --output CHA
 - Update hardcoded docs/ai references to docs/work-in-progress
 - *(readme)* Document codecov coverage thresholds
 - *(readme)* Add tests badge and fix license link
+- *(root)* Move French community-health docs into docs/i18n/fr
 
 ### 🎨 Styling
 

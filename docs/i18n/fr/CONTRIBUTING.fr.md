@@ -1,4 +1,4 @@
-🇫🇷 Version française | [🇬🇧 English version](CONTRIBUTING.md)
+🇫🇷 Version française | [🇬🇧 English version](../../../CONTRIBUTING.md)
 
 ---
 
@@ -42,7 +42,7 @@ make test-frontend    # vitest --coverage --run
 ## Workflow
 
 1. Forker le dépôt et créer une branche à partir de `main`.
-2. Faire la modification, avec des tests qui la couvrent (voir [Tests](README.fr.md#-tests) dans le README).
+2. Faire la modification, avec des tests qui la couvrent (voir [Tests](../../../README.fr.md#-tests) dans le README).
 3. Commiter en suivant la convention ci-dessous.
 4. Pousser et ouvrir une pull request vers `main`.
 5. La CI doit passer avant la revue.
@@ -89,8 +89,8 @@ La CI rejettera toute pull request qui ne passe pas ces vérifications.
 
 ## Code de conduite
 
-Ce projet suit un [Code de conduite](CODE_OF_CONDUCT.md). En participant, vous vous engagez à le respecter.
+Ce projet suit un [Code de conduite](../../../CODE_OF_CONDUCT.md). En participant, vous vous engagez à le respecter.
 
 ## Licence
 
-En contribuant, vous acceptez que vos contributions soient distribuées sous la [licence MIT](LICENSE) du projet.
+En contribuant, vous acceptez que vos contributions soient distribuées sous la [licence MIT](../../../LICENSE) du projet.
