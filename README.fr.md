@@ -4,7 +4,7 @@
 
 # Stamped
 
-> *Une application web locale qui transforme votre bibliothèque de photos et vos traces GPX en carte personnelle de conquête — entièrement privée, rien ne quitte votre machine.*
+> *Application web locale qui transforme votre bibliothèque de photos et vos traces GPX en carte personnelle de conquête : pipeline d'import multi-étapes (EXIF, GPX, interpolation de position, altitude), détection automatique des sorties, entièrement privée. FastAPI, SQLite et Vue.js.*
 
 ![Python](https://img.shields.io/badge/Python-3.12+-3776AB?logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?logo=fastapi&logoColor=white)
