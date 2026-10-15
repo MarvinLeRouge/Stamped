@@ -51,6 +51,7 @@ To regenerate locally, run `npx --yes git-cliff --config cliff.toml --output CHA
 - *(readme)* Document codecov coverage thresholds
 - *(readme)* Add tests badge and fix license link
 - *(root)* Move French community-health docs into docs/i18n/fr
+- Align readme tagline with repository description
 
 ### 🎨 Styling
 

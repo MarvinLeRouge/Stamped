@@ -4,7 +4,7 @@
 
 # Stamped
 
-> *A local-first web app that turns your photo library and GPX tracks into a personal conquest map — fully private, nothing leaves your machine.*
+> *Local-first web app that turns your photo library and GPX tracks into a personal conquest map: multi-stage import pipeline (EXIF, GPX, position interpolation, elevation), automatic trip detection, fully private. FastAPI, SQLite and Vue.js.*
 
 ![Python](https://img.shields.io/badge/Python-3.12+-3776AB?logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?logo=fastapi&logoColor=white)
