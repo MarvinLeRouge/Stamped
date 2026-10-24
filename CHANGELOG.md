@@ -75,6 +75,7 @@ To regenerate locally, run `npx --yes git-cliff --config cliff.toml --output CHA
 - *(ci)* Add ci-status aggregator job
 - Homogenize job naming and add security stages
 - Add local post-commit hook for changelog generation
+- *(gitignore)* Ignore codegraph folder
 ## [2.0.0] - 2026-05-21
 
 ### 🚀 Features
