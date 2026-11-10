@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Your outdoor photos on a conquest map. Fully private, nothing leaves your machine."
 readme = "README.md"
 license = { text = "MIT" }
-requires-python = ">=3.12"
+requires-python = ">=3.14"
 dependencies = [
     "fastapi>=0.162.4",
     "pydantic-settings>=2.16.2",
@@ -49,13 +49,13 @@ testpaths = ["backend/tests"]
 asyncio_mode = "auto"
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.14"
 strict = true
 ignore_missing_imports = true
 exclude = ["frontend/", "data/", ".venv/"]
 
 [tool.ruff]
-target-version = "py312"
+target-version = "py314"
 line-length = 100
 
 [tool.ruff.lint]

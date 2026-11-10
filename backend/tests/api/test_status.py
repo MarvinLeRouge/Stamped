@@ -54,7 +54,7 @@ def test_status_defaults_to_zero(client: TestClient) -> None:
 
 
 def test_status_reflects_live_data(client: TestClient) -> None:
-    def _override_db() -> Generator[sqlite3.Connection, None, None]:
+    def _override_db() -> Generator[sqlite3.Connection]:
         from stamped.core.db import get_connection
 
         with get_connection() as conn:

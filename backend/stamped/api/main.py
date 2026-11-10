@@ -20,7 +20,7 @@ _FRONTEND_DIST = Path(__file__).parent.parent.parent.parent / "frontend" / "dist
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     init_db()
     yield
 

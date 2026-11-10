@@ -25,7 +25,7 @@ def _seeded_client(tmp_path: Path) -> TestClient:
     """Return a TestClient whose DB already has one quest."""
     init_db()
 
-    def _override_db() -> Generator[sqlite3.Connection, None, None]:
+    def _override_db() -> Generator[sqlite3.Connection]:
         with get_connection() as conn:
             conn.execute(
                 """
@@ -130,7 +130,7 @@ def _trackpoints_client(tmp_path: Path) -> tuple[TestClient, int]:
         )
         conn.commit()
 
-    def _override_db() -> Generator[sqlite3.Connection, None, None]:
+    def _override_db() -> Generator[sqlite3.Connection]:
         with get_connection() as conn:
             yield conn
 
@@ -203,7 +203,7 @@ def _photos_client(tmp_path: Path) -> tuple[TestClient, int]:
         )
         conn.commit()
 
-    def _override_db() -> Generator[sqlite3.Connection, None, None]:
+    def _override_db() -> Generator[sqlite3.Connection]:
         with get_connection() as conn:
             yield conn
 
@@ -279,7 +279,7 @@ def _gpx_client_single(tmp_path: Path) -> tuple[TestClient, int]:
         )
         conn.commit()
 
-    def _override_db() -> Generator[sqlite3.Connection, None, None]:
+    def _override_db() -> Generator[sqlite3.Connection]:
         with get_connection() as conn:
             yield conn
 
@@ -316,7 +316,7 @@ def _gpx_client_multi(tmp_path: Path) -> tuple[TestClient, int]:
         )
         conn.commit()
 
-    def _override_db() -> Generator[sqlite3.Connection, None, None]:
+    def _override_db() -> Generator[sqlite3.Connection]:
         with get_connection() as conn:
             yield conn
 
@@ -490,7 +490,7 @@ def _place_client(tmp_path: Path) -> tuple[TestClient, int]:
         )
         conn.commit()
 
-    def _override_db() -> Generator[sqlite3.Connection, None, None]:
+    def _override_db() -> Generator[sqlite3.Connection]:
         with get_connection() as conn:
             yield conn
 
@@ -549,7 +549,7 @@ def test_place_median_from_geolocated_photos(tmp_path: Path) -> None:
         )
         conn.commit()
 
-    def _override_db() -> Generator[sqlite3.Connection, None, None]:
+    def _override_db() -> Generator[sqlite3.Connection]:
         with get_connection() as conn:
             yield conn
 
@@ -644,7 +644,7 @@ def _elevation_client(tmp_path: Path) -> tuple[TestClient, int]:
         )
         conn.commit()
 
-    def _override_db() -> Generator[sqlite3.Connection, None, None]:
+    def _override_db() -> Generator[sqlite3.Connection]:
         with get_connection() as conn:
             yield conn
 

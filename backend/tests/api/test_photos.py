@@ -17,7 +17,7 @@ def isolated_data_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.fixture()
-def db_conn() -> Generator[sqlite3.Connection, None, None]:
+def db_conn() -> Generator[sqlite3.Connection]:
     init_db()
     with get_connection() as conn:
         yield conn
@@ -49,7 +49,7 @@ def _insert_photo(
 
 
 def test_get_thumb_returns_404_for_unknown_photo(client: TestClient) -> None:
-    def _override() -> Generator[sqlite3.Connection, None, None]:
+    def _override() -> Generator[sqlite3.Connection]:
         with get_connection() as conn:
             yield conn
 
@@ -64,7 +64,7 @@ def test_get_thumb_returns_404_for_unknown_photo(client: TestClient) -> None:
 def test_get_thumb_returns_202_when_pending(tmp_path: Path, db_conn: sqlite3.Connection) -> None:
     _insert_photo(db_conn, thumb_status="pending")
 
-    def _override() -> Generator[sqlite3.Connection, None, None]:
+    def _override() -> Generator[sqlite3.Connection]:
         yield db_conn
 
     app.dependency_overrides[get_db] = _override
@@ -80,7 +80,7 @@ def test_get_thumb_serves_file_when_done(tmp_path: Path, db_conn: sqlite3.Connec
     jpeg = make_jpeg(tmp_path / "thumb.jpg")
     _insert_photo(db_conn, thumb_path=str(jpeg), thumb_status="done")
 
-    def _override() -> Generator[sqlite3.Connection, None, None]:
+    def _override() -> Generator[sqlite3.Connection]:
         yield db_conn
 
     app.dependency_overrides[get_db] = _override
@@ -96,7 +96,7 @@ def test_get_thumb_serves_file_when_done(tmp_path: Path, db_conn: sqlite3.Connec
 
 
 def test_patch_photo_unknown_returns_404(client: TestClient) -> None:
-    def _override() -> Generator[sqlite3.Connection, None, None]:
+    def _override() -> Generator[sqlite3.Connection]:
         with get_connection() as conn:
             yield conn
 
@@ -111,7 +111,7 @@ def test_patch_photo_unknown_returns_404(client: TestClient) -> None:
 def test_patch_photo_sets_coordinates(tmp_path: Path, db_conn: sqlite3.Connection) -> None:
     _insert_photo(db_conn)
 
-    def _override() -> Generator[sqlite3.Connection, None, None]:
+    def _override() -> Generator[sqlite3.Connection]:
         yield db_conn
 
     app.dependency_overrides[get_db] = _override
@@ -131,7 +131,7 @@ def test_patch_photo_clears_orphan_flag(tmp_path: Path, db_conn: sqlite3.Connect
     )
     db_conn.commit()
 
-    def _override() -> Generator[sqlite3.Connection, None, None]:
+    def _override() -> Generator[sqlite3.Connection]:
         yield db_conn
 
     app.dependency_overrides[get_db] = _override
@@ -148,7 +148,7 @@ def test_patch_photo_returns_full_summary_shape(
 ) -> None:
     _insert_photo(db_conn)
 
-    def _override() -> Generator[sqlite3.Connection, None, None]:
+    def _override() -> Generator[sqlite3.Connection]:
         yield db_conn
 
     app.dependency_overrides[get_db] = _override
@@ -171,7 +171,7 @@ def test_patch_photo_returns_full_summary_shape(
 
 
 def test_delete_photo_unknown_returns_404(client: TestClient) -> None:
-    def _override() -> Generator[sqlite3.Connection, None, None]:
+    def _override() -> Generator[sqlite3.Connection]:
         with get_connection() as conn:
             yield conn
 
@@ -186,7 +186,7 @@ def test_delete_photo_unknown_returns_404(client: TestClient) -> None:
 def test_delete_photo_returns_204(tmp_path: Path, db_conn: sqlite3.Connection) -> None:
     _insert_photo(db_conn)
 
-    def _override() -> Generator[sqlite3.Connection, None, None]:
+    def _override() -> Generator[sqlite3.Connection]:
         yield db_conn
 
     app.dependency_overrides[get_db] = _override
@@ -200,7 +200,7 @@ def test_delete_photo_returns_204(tmp_path: Path, db_conn: sqlite3.Connection) -
 def test_delete_photo_removes_from_db(tmp_path: Path, db_conn: sqlite3.Connection) -> None:
     _insert_photo(db_conn)
 
-    def _override() -> Generator[sqlite3.Connection, None, None]:
+    def _override() -> Generator[sqlite3.Connection]:
         yield db_conn
 
     app.dependency_overrides[get_db] = _override
@@ -214,7 +214,7 @@ def test_delete_photo_removes_from_db(tmp_path: Path, db_conn: sqlite3.Connectio
 def test_delete_photo_adds_to_deleted_photos(tmp_path: Path, db_conn: sqlite3.Connection) -> None:
     _insert_photo(db_conn, file_hash="deadbeef" * 8)
 
-    def _override() -> Generator[sqlite3.Connection, None, None]:
+    def _override() -> Generator[sqlite3.Connection]:
         yield db_conn
 
     app.dependency_overrides[get_db] = _override
@@ -231,7 +231,7 @@ def test_delete_photo_removes_thumb_file(tmp_path: Path, db_conn: sqlite3.Connec
     jpeg = make_jpeg(tmp_path / "thumb.jpg")
     _insert_photo(db_conn, thumb_path=str(jpeg), thumb_status="done")
 
-    def _override() -> Generator[sqlite3.Connection, None, None]:
+    def _override() -> Generator[sqlite3.Connection]:
         yield db_conn
 
     app.dependency_overrides[get_db] = _override
@@ -262,7 +262,7 @@ def test_delete_photo_updates_quest_photo_count(
     )
     db_conn.commit()
 
-    def _override() -> Generator[sqlite3.Connection, None, None]:
+    def _override() -> Generator[sqlite3.Connection]:
         yield db_conn
 
     app.dependency_overrides[get_db] = _override
@@ -280,7 +280,7 @@ def test_delete_photo_updates_quest_photo_count(
 
 
 def test_priority_thumb_returns_404_for_unknown(client: TestClient) -> None:
-    def _override() -> Generator[sqlite3.Connection, None, None]:
+    def _override() -> Generator[sqlite3.Connection]:
         with get_connection() as conn:
             yield conn
 
@@ -295,7 +295,7 @@ def test_priority_thumb_returns_404_for_unknown(client: TestClient) -> None:
 def test_priority_thumb_returns_queued(tmp_path: Path, db_conn: sqlite3.Connection) -> None:
     _insert_photo(db_conn, thumb_status="pending")
 
-    def _override() -> Generator[sqlite3.Connection, None, None]:
+    def _override() -> Generator[sqlite3.Connection]:
         yield db_conn
 
     app.dependency_overrides[get_db] = _override

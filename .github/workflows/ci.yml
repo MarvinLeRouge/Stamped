@@ -27,6 +27,7 @@ jobs:
               - 'migrations/**'
               - 'pyproject.toml'
               - 'uv.lock'
+              - '.python-version'
               - '.github/workflows/ci.yml'
             frontend:
               - 'frontend/**'

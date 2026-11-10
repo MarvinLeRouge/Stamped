@@ -24,7 +24,7 @@ def test_sse_events_returns_streaming_response(monkeypatch: pytest.MonkeyPatch) 
 
     async def _finite_stream(
         q: object,
-    ) -> AsyncGenerator[str, None]:
+    ) -> AsyncGenerator[str]:
         yield 'event: connected\ndata: {"timestamp": "2024-01-01T00:00:00Z"}\n\n'
 
     monkeypatch.setattr(events_mod.bus, "stream", _finite_stream)
