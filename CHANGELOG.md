@@ -20,6 +20,7 @@ To regenerate locally, run `npx --yes git-cliff --config cliff.toml --output CHA
 - *(ci)* Trigger workflow on all pull requests, not just non-doc changes
 - *(ci)* Add pip-audit to dev dependencies
 - *(frontend)* Bump vitest to resolve npm audit vulnerabilities
+- *(frontend)* Resolve critical and high npm audit vulnerabilities (FIX-001)
 
 ### 📚 Documentation
 
