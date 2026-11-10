@@ -1,18 +1,14 @@
 VENV := .venv
 PYTHON := $(VENV)/bin/python
-PIP := $(VENV)/bin/pip
 
 .PHONY: install dev test lint format typecheck start clean
 
-install: $(VENV)/bin/activate
-	$(PIP) install -e ".[dev]"
+install:
+	uv sync
 	cd frontend && npm install
 	$(VENV)/bin/pre-commit install
 	$(VENV)/bin/pre-commit install --hook-type pre-push
 	$(VENV)/bin/pre-commit autoupdate
-
-$(VENV)/bin/activate:
-	python3 -m venv $(VENV)
 
 dev:
 	$(VENV)/bin/uvicorn stamped.api.main:app --reload --port 8421 &
