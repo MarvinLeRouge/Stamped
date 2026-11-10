@@ -8,7 +8,7 @@ C'est avant tout un projet personnel, local-first. Les contributions externes (r
 
 ## Prérequis
 
-- Python 3.12+
+- Python 3.14+, uv
 - Node.js 18+
 
 ## Installation locale
@@ -18,8 +18,7 @@ git clone https://github.com/MarvinLeRouge/Stamped.git
 cd Stamped
 
 # Backend
-python -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
+uv sync && source .venv/bin/activate
 
 # Frontend
 cd frontend && npm install && cd ..

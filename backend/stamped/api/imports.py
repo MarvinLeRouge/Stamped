@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-_jobs: dict[str, "JobState"] = {}
+_jobs: dict[str, JobState] = {}
 
 
 def _now() -> str:

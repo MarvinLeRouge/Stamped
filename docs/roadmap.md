@@ -37,3 +37,4 @@
 ## Section 4 - Maintenance
 
 - [x] FIX-001 - Fix critical and high npm audit vulnerabilities in the frontend
+- [x] CHORE-001 - Homogenize Python 3.14, uv lockfile and Dependabot

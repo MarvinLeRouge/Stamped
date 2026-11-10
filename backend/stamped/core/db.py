@@ -22,7 +22,7 @@ def _open() -> sqlite3.Connection:
 
 
 @contextmanager
-def get_connection() -> Generator[sqlite3.Connection, None, None]:
+def get_connection() -> Generator[sqlite3.Connection]:
     conn = _open()
     try:
         yield conn
@@ -30,7 +30,7 @@ def get_connection() -> Generator[sqlite3.Connection, None, None]:
         conn.close()
 
 
-def get_db() -> Generator[sqlite3.Connection, None, None]:
+def get_db() -> Generator[sqlite3.Connection]:
     with get_connection() as conn:
         yield conn
 

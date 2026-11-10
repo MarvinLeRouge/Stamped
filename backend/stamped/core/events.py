@@ -28,7 +28,7 @@ class EventBus:
             with contextlib.suppress(asyncio.QueueFull):
                 q.put_nowait(payload)
 
-    async def stream(self, q: asyncio.Queue[dict[str, Any]]) -> AsyncGenerator[str, None]:
+    async def stream(self, q: asyncio.Queue[dict[str, Any]]) -> AsyncGenerator[str]:
         yield f"event: connected\ndata: {json.dumps({'timestamp': _now()})}\n\n"
         try:
             while True:

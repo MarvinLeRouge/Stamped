@@ -26,7 +26,7 @@ def client(tmp_path: Path) -> TestClient:
 
 
 @pytest.fixture()
-def db_conn() -> Generator[sqlite3.Connection, None, None]:
+def db_conn() -> Generator[sqlite3.Connection]:
     init_db()
     with get_connection() as conn:
         yield conn
@@ -104,7 +104,7 @@ def test_reindex_with_confirm_clears_data(
 
     import_directory(tmp_path, db_conn)
 
-    def _override_db() -> Generator[sqlite3.Connection, None, None]:
+    def _override_db() -> Generator[sqlite3.Connection]:
         with get_connection() as conn:
             yield conn
 
