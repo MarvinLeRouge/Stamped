@@ -33,3 +33,7 @@
 - [ ] Tagging par type d'activité
 - [ ] Thème sombre
 - [ ] Raccourcis clavier
+
+## Section 4 - Maintenance
+
+- [x] FIX-001 - Corriger les vulnérabilités npm audit critical et high du frontend
