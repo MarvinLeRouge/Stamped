@@ -33,3 +33,7 @@
 - [ ] Activity type tagging
 - [ ] Dark theme
 - [ ] Keyboard shortcuts
+
+## Section 4 - Maintenance
+
+- [x] CHORE-001 - Homogenize Python 3.14, uv lockfile and Dependabot

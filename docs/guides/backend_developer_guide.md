@@ -9,7 +9,7 @@ See [backend architecture](../architecture/backend_architecture.md) for the layo
 ## Technologies
 
 - Framework: FastAPI, served by uvicorn
-- Language: Python 3.12+
+- Language: Python 3.14+
 - Database: SQLite, accessed via the standard library `sqlite3` module (no ORM)
 - Validation / response shapes: Pydantic `BaseModel`
 - Settings: `pydantic-settings`, `STAMPED_*` environment variables (see [docs/operations.md](../operations.md))

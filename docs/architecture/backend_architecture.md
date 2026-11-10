@@ -41,7 +41,7 @@ backend/stamped/
 
 ## Tech stack
 
-Python 3.12+, FastAPI, uvicorn, `sqlite3` (standard library), Pydantic. EXIF via `exifread` and `piexif`, GPX via `gpxpy`, thumbnails via Pillow, geocoding via `geopy` (Nominatim), elevation lookups via `httpx` against OpenTopoData. SSE served with `sse-starlette`. `sqlmodel` is listed in `pyproject.toml` but not currently used anywhere in the codebase.
+Python 3.14+, FastAPI, uvicorn, `sqlite3` (standard library), Pydantic. EXIF via `exifread` and `piexif`, GPX via `gpxpy`, thumbnails via Pillow, geocoding via `geopy` (Nominatim), elevation lookups via `httpx` against OpenTopoData. SSE served with `sse-starlette`. `sqlmodel` is listed in `pyproject.toml` but not currently used anywhere in the codebase.
 
 ## Data access
 

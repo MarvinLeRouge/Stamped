@@ -6,7 +6,7 @@
 
 ## Prerequisites
 
-Python 3.12+, Node.js 18+.
+Python 3.14+, uv, Node.js 18+.
 
 ## Install
 
@@ -14,8 +14,7 @@ Python 3.12+, Node.js 18+.
 git clone https://github.com/MarvinLeRouge/Stamped.git && cd Stamped
 
 # Backend
-python -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
+uv sync && source .venv/bin/activate
 
 # Frontend
 cd frontend && npm install && npm run build && cd ..

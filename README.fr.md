@@ -6,8 +6,8 @@
 
 > *Application web locale qui transforme votre bibliothèque de photos et vos traces GPX en carte personnelle de conquête : pipeline d'import multi-étapes (EXIF, GPX, interpolation de position, altitude), détection automatique des sorties, entièrement privée. FastAPI, SQLite et Vue.js.*
 
-![Python](https://img.shields.io/badge/Python-3.12+-3776AB?logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?logo=fastapi&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.14+-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.162+-009688?logo=fastapi&logoColor=white)
 ![Vue.js](https://img.shields.io/badge/Vue.js-3-4FC08D?logo=vuedotjs&logoColor=white)
 ![SQLite](https://img.shields.io/badge/SQLite-3-003B57?logo=sqlite&logoColor=white)
 [![CI](https://github.com/MarvinLeRouge/Stamped/actions/workflows/ci.yml/badge.svg)](https://github.com/MarvinLeRouge/Stamped/actions)
@@ -141,14 +141,13 @@ Seuils de couverture (`codecov.yml`, bloquants) : projet 80 % (±1 %), patch 90 
 
 ## 🚀 Démarrage
 
-**Prérequis** — Python 3.12+, Node.js 18+
+**Prérequis** — Python 3.14+, uv, Node.js 18+
 
 ```bash
 git clone https://github.com/MarvinLeRouge/Stamped.git && cd Stamped
 
 # Backend
-python -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
+uv sync && source .venv/bin/activate
 
 # Frontend
 cd frontend && npm install && npm run build && cd ..
@@ -195,7 +194,7 @@ v1 et v2 sont livrées ; la v3 (timeline macro des quests, surveillance de dossi
 
 | Couche | Technologie |
 |---|---|
-| Backend | ![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white&style=flat-square) ![Python](https://img.shields.io/badge/Python_3.12-3776AB?logo=python&logoColor=white&style=flat-square) |
+| Backend | ![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white&style=flat-square) ![Python](https://img.shields.io/badge/Python_3.14-3776AB?logo=python&logoColor=white&style=flat-square) |
 | Base de données | ![SQLite](https://img.shields.io/badge/SQLite-003B57?logo=sqlite&logoColor=white&style=flat-square) migrations SQL versionnées |
 | Frontend | ![Vue.js](https://img.shields.io/badge/Vue.js_3-4FC08D?logo=vuedotjs&logoColor=white&style=flat-square) ![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white&style=flat-square) |
 | Carte | ![Leaflet](https://img.shields.io/badge/Leaflet-199900?logo=leaflet&logoColor=white&style=flat-square) + Leaflet.markercluster |
