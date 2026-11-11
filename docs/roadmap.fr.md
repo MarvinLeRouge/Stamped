@@ -38,3 +38,4 @@
 
 - [x] FIX-001 - Corriger les vulnérabilités npm audit critical et high du frontend
 - [x] CHORE-001 - Homogénéiser Python 3.14, lockfile uv et Dependabot
+- [x] CHORE-002 - Grouper les mises à jour vitest et ignorer TypeScript 7 dans Dependabot

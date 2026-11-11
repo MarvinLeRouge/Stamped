@@ -80,6 +80,7 @@ To regenerate locally, run `npx --yes git-cliff --config cliff.toml --output CHA
 - *(changelog)* Auto-merge the catch-up CHANGELOG.md PR
 - *(python)* Move to python 3.14
 - *(ci)* Add dependabot and update docs (CHORE-001)
+- *(ci)* Group vitest updates and ignore typescript 7 in dependabot (CHORE-002)
 ## [2.0.0] - 2026-05-21
 
 ### 🚀 Features
