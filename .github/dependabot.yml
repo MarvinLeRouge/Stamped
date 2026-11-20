@@ -2,6 +2,7 @@ version: 2
 updates:
   - package-ecosystem: "uv"
     directory: "/"
+    versioning-strategy: "lockfile-only"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -19,6 +20,9 @@ updates:
       # typescript-eslint does not support TypeScript 7 yet (peer typescript <6.1.0), remove when it does
       - dependency-name: "typescript"
         update-types: ["version-update:semver-major"]
+      # Node types follow the Node runtime major (Dockerfiles, CI node-version)
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
     groups:
       vitest:
         patterns: ["vitest", "@vitest/*"]
@@ -31,5 +35,6 @@ updates:
       day: "monday"
     open-pull-requests-limit: 5
     groups:
-      minor-and-patch:
-        update-types: ["minor", "patch"]
+      # One weekly PR for every action bump, majors included
+      actions:
+        patterns: ["*"]
