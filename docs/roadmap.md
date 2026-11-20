@@ -44,3 +44,4 @@
 - [x] CHORE-004 - Upgrade vitest and @vitest/coverage-v8 to 5 together (Dependabot PRs #87 and #88 each bumped one and failed)
 - [x] CHORE-005 - Extend @tsconfig/node26 instead of @tsconfig/node24 (strict set explicitly)
 - [x] CI-002 - Pin every GitHub Action to its current major by commit SHA, changelog workflow on Node 26, align the Dependabot config (single actions group)
+- [x] CI-003 - Leave the project itself out of the pip-audit export (--no-emit-project)
