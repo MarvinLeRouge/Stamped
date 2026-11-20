@@ -9,7 +9,7 @@ This is primarily a personal, local-first project. External contributions (bug r
 ## Prerequisites
 
 - Python 3.14+, uv
-- Node.js 18+
+- Node.js 26 LTS
 
 ## Local setup
 

@@ -9,7 +9,7 @@ C'est avant tout un projet personnel, local-first. Les contributions externes (r
 ## Prérequis
 
 - Python 3.14+, uv
-- Node.js 18+
+- Node.js 26 LTS
 
 ## Installation locale
 

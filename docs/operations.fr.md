@@ -6,7 +6,7 @@
 
 ## Prérequis
 
-Python 3.14+, uv, Node.js 18+.
+Python 3.14+, uv, Node.js 26 LTS.
 
 ## Installation
 

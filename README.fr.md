@@ -141,7 +141,7 @@ Seuils de couverture (`codecov.yml`, bloquants) : projet 80 % (±1 %), patch 90 
 
 ## 🚀 Démarrage
 
-**Prérequis** — Python 3.14+, uv, Node.js 18+
+**Prérequis** — Python 3.14+, uv, Node.js 26 LTS
 
 ```bash
 git clone https://github.com/MarvinLeRouge/Stamped.git && cd Stamped

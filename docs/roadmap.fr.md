@@ -40,3 +40,4 @@
 - [x] CHORE-001 - Homogénéiser Python 3.14, lockfile uv et Dependabot
 - [x] CHORE-002 - Grouper les mises à jour vitest et ignorer TypeScript 7 dans Dependabot
 - [x] CI-001 - Lancer la CI sur la PR du bot changelog pour que son auto-merge aboutisse
+- [x] CHORE-003 - Aligner le runtime Node sur la 26 LTS (CI, engines, @types/node, docs)
