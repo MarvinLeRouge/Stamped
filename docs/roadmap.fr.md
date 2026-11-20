@@ -45,3 +45,4 @@
 - [x] CHORE-005 - Étendre @tsconfig/node26 au lieu de @tsconfig/node24 (strict fixé explicitement)
 - [x] CI-002 - Épingler chaque GitHub Action sur sa majeure actuelle par SHA de commit, workflow changelog sur Node 26, aligner la config Dependabot (groupe actions unique)
 - [x] CI-003 - Exclure le projet lui-même de l'export pip-audit (--no-emit-project)
+- [x] CI-004 - Relever le seuil de couverture de 80 % à 85 % (seuils et docs)
