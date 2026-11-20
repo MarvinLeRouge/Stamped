@@ -84,6 +84,7 @@ To regenerate locally, run `npx --yes git-cliff --config cliff.toml --output CHA
 - *(ci)* Group vitest updates and ignore typescript 7 in dependabot (CHORE-002)
 - Run CI on the changelog bot PR so its auto-merge can complete
 - *(runtime)* Align the node runtime on 26 lts (CHORE-003)
+- *(runtime)* Extend the node 26 tsconfig preset (CHORE-005)
 ## [2.0.0] - 2026-05-21
 
 ### 🚀 Features
