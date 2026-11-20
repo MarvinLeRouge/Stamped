@@ -42,3 +42,4 @@
 - [x] CI-001 - Run CI on the changelog bot PR so its auto-merge can complete
 - [x] CHORE-003 - Align the Node runtime on 26 LTS (CI, engines, @types/node, docs)
 - [x] CHORE-004 - Upgrade vitest and @vitest/coverage-v8 to 5 together (Dependabot PRs #87 and #88 each bumped one and failed)
+- [x] CHORE-005 - Extend @tsconfig/node26 instead of @tsconfig/node24 (strict set explicitly)
