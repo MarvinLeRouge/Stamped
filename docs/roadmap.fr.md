@@ -41,3 +41,4 @@
 - [x] CHORE-002 - Grouper les mises à jour vitest et ignorer TypeScript 7 dans Dependabot
 - [x] CI-001 - Lancer la CI sur la PR du bot changelog pour que son auto-merge aboutisse
 - [x] CHORE-003 - Aligner le runtime Node sur la 26 LTS (CI, engines, @types/node, docs)
+- [x] CHORE-004 - Monter vitest et @vitest/coverage-v8 en 5 ensemble (les PR Dependabot #87 et #88 en montaient chacune un seul et échouaient)
