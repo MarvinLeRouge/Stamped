@@ -87,6 +87,7 @@ To regenerate locally, run `npx --yes git-cliff --config cliff.toml --output CHA
 - *(runtime)* Extend the node 26 tsconfig preset (CHORE-005)
 - *(actions)* Pin actions to current majors by sha (CI-002)
 - *(security)* Leave the project out of the pip-audit export (CI-003)
+- *(coverage)* Raise the coverage floor to 85% (CI-004)
 ## [2.0.0] - 2026-05-21
 
 ### 🚀 Features
