@@ -10,6 +10,7 @@ C'est avant tout un projet personnel, local-first. Les contributions externes (r
 
 - Python 3.14+, uv
 - Node.js 26 LTS
+- [gitleaks](https://github.com/gitleaks/gitleaks) : le hook pre-commit analyse les modifications indexées à la recherche de secrets et refuse de committer s'il est absent
 
 ## Installation locale
 

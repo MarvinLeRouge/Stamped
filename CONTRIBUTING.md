@@ -10,6 +10,7 @@ This is primarily a personal, local-first project. External contributions (bug r
 
 - Python 3.14+, uv
 - Node.js 26 LTS
+- [gitleaks](https://github.com/gitleaks/gitleaks): the pre-commit hook scans staged changes for secrets and refuses to commit without it
 
 ## Local setup
 
